@@ -1,0 +1,121 @@
+$ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+$          ROCKET PARAMETERS INPUT for miniQuabla         
+$ ---------------------------------------------------------
+$  Team     : STEP
+$  Project  :
+$  Name     : TSUKUBA-STEP15
+$  Author   :
+$  Date     : 2020/08/09
+$  Version  : 1.0.0 
+$ ---------------------------------------------------------
+$                   !!! CAUTION !!!
+$ Comment line must be started $
+$ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+$ ----------------------------
+$ rocket airframe parameters
+$ ----------------------------
+$ rocket diameter [m]
+diameter, 0.120
+$ rocket length for axial [m]
+length, 2.0
+$ dry mass [kg]
+mass_dry, 6.79
+$ oxidizer mass [kg]
+mass_ox, 0.663825
+$ fuel mass [kg]
+mass_fuel_bef, 0.38
+mass_fuel_aft, 0.295
+$ center of gravity (C.G.) in dry from end [m]
+lcg_dry, 0.878
+$ center of gravity (C.G.) of oxidizer before lift-off from end [m]
+lcg_ox, 0.550
+$ center of gravity (C.G.) of fuel from end [m]
+lcg_fuel, 0.139
+$ tank cap location from end [m]
+l_tank_cap, 0.279
+$ moment of inertial of dry mass wrt. CG_dry [kg-m^2]
+Ij_dry_pitch, 1.968
+Ij_dry_roll, 0.014
+
+$ ----------------------------
+$ rocket aerodynamic parameters (at M = 0.3, AoA ~ 0deg)
+$ ----------------------------
+$ center of pressure (C.P.) from end [m]
+lcp, 0.636
+$ Axial force coefficient
+CA, 0.41
+$ Slope of Normal foece coefficient [1/rad]
+CNa, 10.636
+$ roll damping coefficient
+Clp, -0.013
+$ pitch damping coefficient
+Cmq, -1.589
+
+$ ----------------------------
+$ launch parameters
+$ ----------------------------
+$ launcher elevetion angle [deg]
+launch_elevation,70
+$ azimuth [deg], North=0, East=90
+launch_azimuth,150.
+$ launcher rail lenght [m]
+rail_length,5.
+
+$ ----------------------------
+$ numerical parameters
+$ ----------------------------
+$ time step [s]
+dt,0.001
+$ max time for computation [s]
+t_max,1000.
+
+$ ----------------------------
+$ wind parameters
+$ ----------------------------
+$ wind direction blowing from [deg]
+wind_azimuth,150.
+$ wind speed at wind_alt_std[m]
+wind_speed,3.
+$ wind power profile coefficient
+wind_power_coeff,6.
+$ reference altitude where wind speed is defined [m]
+wind_alt_ref,2.
+$ wind model
+wind_model,power
+$wind_model, statistics
+$ forecast csv file
+wind_file, wind_parameters.json
+
+$ ----------------------------
+$ engine parameters
+$ ----------------------------
+$ thrust_input_type =
+$	'rectangle'     for constant thrust. Requires "thrust"[N], "t_MECO"[s]
+$ 	'curve_const_t' for thrust log with constant time step. Requires "thrust_dt"[s] and "thrust_filename"
+$   'time_curve'    for time and Thrust log. Requires "thrust_filename"
+thrust_input_type,time_curve
+$ thrust curve file
+thrust_file,thrust.csv
+$ burn time
+time_burn,6.0
+
+$ ----------------------------
+$ parachute parameters
+$ ----------------------------
+$ 1st parachute deployment time delay from apogee [s]
+t_para_delay, 1.
+$ drag coeff. of 1st parachute
+Cd_para, 1.2
+$ net area of 1st parachute [m^2]
+S_para, 0.215
+$ whether 2nd parachute is deployed or not
+second_para, True
+$ 2nd parachute deployment time from take-off
+t_deploy_2, 1800.
+$ drag coeff. of 2nd parachute
+Cd_para_2, 1.2
+$ net area of 2nd parachute [m^2]
+S_para_2, 3.39
+$ altitude where 2nd parachute is deployed
+alt_para_2, 300.
