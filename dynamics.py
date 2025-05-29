@@ -81,7 +81,10 @@ def dynamics_trajectory(time, x, param:Parameter):
 
     return dxdt
 
-#### Subroutine ###############################################
+#####################################################################
+# Subroutine 
+#####################################################################
+
 def calc_air_speed(vel: np.ndarray, wind: np.ndarray):
     '''対気速度計算'''
 
@@ -190,55 +193,6 @@ def is_launch_clear(pos, dcm, l_launcher):
     else:
         return False
 
-#### for Debug Function ###############################################
-
-def __unit_test():
-
-    vel_Body = np.array(
-        [[1., 2., 3.],
-         [1., 2., 3.],
-         [1., 2., 3.],
-         [1., 2., 3.],
-         [1., 2., 3.],
-         ]
-    )
-
-    wind = np.array(
-        [[5., 2., 3.],
-         [5., 2., 3.],
-         [5., 2., 3.],
-         [5., 2., 3.],
-         [5., 2., 3.],
-         ]
-    )
-
-    # vel_NED = [0.2305403462, -12.57858105, -31.56811072]
-    # wind_NED = [0.2305403462, -12.57858105, -31.56811072]
-    
-    vel_NED  = np.zeros(3)
-    wind_NED = np.array([1.9311196386832172, 0.8124923839418335, -0.0])
-
-    quat = quaternion.from_euler_angles(np.deg2rad([0., 70., 280.])).normalized()
-    quat = quaternion.from_euler_angles(np.deg2rad([280., 70., 0.]))
-    # quat = quaternion.from_euler_angles(np.deg2rad([-88.95, 68.24064192, 2.57E-14]))
-    # quat = quaternion.from_euler_angles(np.deg2rad([0, 68.24064192, -88.95]))
-    dcm = quaternion.as_rotation_matrix(quat)
-    vel_air_body = dcm.T @ calc_air_speed(vel_NED, wind_NED)
-    vel_Body = dcm.T @ vel_NED
-    wind = dcm.T @ wind_NED
-
-    # vel_air = calc_air_speed(vel_Body, wind)
-    vel_air = np.array([35.37841342,	-1.59E-15,	3.478619408])
-    alpha, beta = calc_angle_of_attack(vel_air)
-    vel_air_abs = np.linalg.norm(vel_air)
-    mach = calc_mach_number(vel_air_abs, 350)
-    dynamic_pressure = calc_dynamic_pressure(vel_air_abs, 1.23)
-    force_aero = calc_aero_force(dynamic_pressure, alpha, beta, .6, 7.2, 0.011)
-
-    quatdot = calc_quat_dot(np.zeros(3), quat)
-
-    print(vel_air)
-
 def event_land(time, x, param):
 
     if x[2] < 0.:
@@ -246,43 +200,39 @@ def event_land(time, x, param):
     else:
         return 0
 
-def __check_result(time, pos, vel, quat, omega, mass):
+#### for Debug Function ###############################################
+
+def __check_result(time, pos, vel, quat, omega, mass, param):
 
     import matplotlib.pyplot as plt
 
     plt.figure('Position')
-    plt.plot(time, pos[0, :])
-    plt.plot(time, pos[1, :])
-    plt.plot(time, pos[2, :])
+    plt.plot(time, pos[0])
+    plt.plot(time, pos[1])
+    plt.plot(time, pos[2])
     plt.xlim(left=0., right=time[-1])
     plt.grid()
     plt.savefig('test/' + 'Position' + '.png')
 
     plt.figure('Velocity')
-    plt.plot(time, vel[0, :])
-    plt.plot(time, vel[1, :])
-    plt.plot(time, vel[2, :])
+    plt.plot(time, vel[0])
+    plt.plot(time, vel[1])
+    plt.plot(time, vel[2])
     plt.xlim(left=0., right=time[-1])
     plt.grid()
     plt.savefig('test/' + 'Velocity' + '.png')
     
     plt.figure('Quaternion')
-    plt.plot(time, quat[0, :])
-    plt.plot(time, quat[1, :])
-    plt.plot(time, quat[2, :])
-    plt.plot(time, quat[3, :])
+    plt.plot(time, quat[0])
+    plt.plot(time, quat[1])
+    plt.plot(time, quat[2])
+    plt.plot(time, quat[3])
     plt.xlim(left=0., right=time[-1])
     plt.grid()
     plt.savefig('test/' + 'Quaternion' + '.png')
 
-    quat_new = np.zeros((len(quat[0]), 4))
-    quat_new[:, 0] = quat[0]
-    quat_new[:, 1] = quat[1]
-    quat_new[:, 2] = quat[2]
-    quat_new[:, 3] = quat[3]
-    quat_new = [np.quaternion(q0, q1, q2, q3) for q0, q1, q2, q3 in zip(quat[0], quat[1], quat[2], quat[3])]
-    # quat_new = quat_new.tolist()
-    euler = np.rad2deg(np.array([quaternion.as_euler_angles(q) for q in quat_new]))
+    quat_new = quaternion.from_float_array(quat.T)
+    euler = np.rad2deg(quaternion.as_euler_angles(quat_new))
 
     plt.figure('Euler')
     plt.plot(time, euler[:, 0], label='Azimuth')
@@ -294,9 +244,9 @@ def __check_result(time, pos, vel, quat, omega, mass):
     plt.savefig('test/' + 'Euler' + '.png')
 
     plt.figure('Omega')
-    plt.plot(time, omega[0, :])
-    plt.plot(time, omega[1, :])
-    plt.plot(time, omega[2, :])
+    plt.plot(time, omega[0])
+    plt.plot(time, omega[1])
+    plt.plot(time, omega[2])
     plt.xlim(left=0., right=time[-1])
     plt.grid()
     plt.savefig('test/' + 'Omega' + '.png')
@@ -306,6 +256,46 @@ def __check_result(time, pos, vel, quat, omega, mass):
     plt.xlim(left=0., right=time[-1])
     plt.grid()
     plt.savefig('test/' + 'Mass' + '.png')
+
+    alt_log = np.abs(pos[2])
+    g, rho, cs  = param.atmos.get_atmosphere(alt_log)
+    plt.figure('Air Density')
+    plt.plot(time, rho)
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Air_density' + '.png')
+
+    dcm = quaternion.as_rotation_matrix(quat_new)
+    vel_NED = np.array([d @ v for d, v in zip(dcm, vel.T)])
+    wind_NED = np.array([param.wind.get_wind_NED(alt) for alt in alt_log])
+    vel_air = np.array([d.T @ calc_air_speed(v, w) for d, v, w in zip(dcm, vel_NED, wind_NED)])
+    aoa = np.array([np.rad2deg(calc_angle_of_attack(v)) for v in vel_air])
+    
+    plt.figure('Velocity_NED')
+    plt.plot(time, vel_NED[:, 0])
+    plt.plot(time, vel_NED[:, 1])
+    plt.plot(time, vel_NED[:, 2])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Velocity_NED' + '.png')
+    
+    plt.figure('Air_speed')
+    plt.plot(time, vel_air[:, 0])
+    plt.plot(time, vel_air[:, 1])
+    plt.plot(time, vel_air[:, 2])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Air_speed' + '.png')
+    
+    plt.figure('AoA_AoS')
+    plt.plot(time, aoa[:, 0])
+    plt.plot(time, aoa[:, 1])
+    plt.xlim(left=0., right=time[-1])
+    plt.ylim(bottom=-15., top=15.)
+    plt.grid()
+    plt.savefig('test/' + 'AoA_AoS' + '.png')
+
+
 
 def __check_value(time, pos, vel, quat, omega, mass):
 
@@ -324,7 +314,6 @@ def __debug():
 
     param = Parameter('example/rocket_config.csv')
     pos0, vel0, quat0, omega0, mass0 = param.get_initial_param()
-    time0 = 0.
     x0 = np.zeros(14)
     x0[0:3]     = pos0
     x0[3:6]     = vel0
@@ -340,7 +329,7 @@ def __debug():
     quat_log  = result.y[6:10]
     omega_log = result.y[10:13]
     mass_log  = result.y[13]
-    __check_result(time_log, pos_log, vel_log, quat_log, omega_log, mass_log)
+    __check_result(time_log, pos_log, vel_log, quat_log, omega_log, mass_log, param)
     __check_value(time_log, pos_log, vel_log, quat_log, omega_log, mass_log)
 
 if __name__=='__main__':
