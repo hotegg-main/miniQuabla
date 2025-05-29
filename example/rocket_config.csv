@@ -96,7 +96,7 @@ $ 	'curve_const_t' for thrust log with constant time step. Requires "thrust_dt"[
 $   'time_curve'    for time and Thrust log. Requires "thrust_filename"
 thrust_input_type,time_curve
 $ thrust curve file
-thrust_file,thrust.csv
+thrust_file,example/thrust.csv
 $ burn time
 time_burn,3.6
 

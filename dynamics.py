@@ -307,24 +307,22 @@ def __check_result(time, pos, vel, quat, omega, mass):
     plt.grid()
     plt.savefig('test/' + 'Mass' + '.png')
 
-    # plt.show()
-
 def __check_value(time, pos, vel, quat, omega, mass):
 
     index       = np.argmax( - pos[2])
     alt_apogee  = - pos[2, index]
     time_apogee = time[index]
 
-    print(time_apogee, alt_apogee)
+    print('Apogee:',time_apogee, alt_apogee)
+    print('Landing Time:', time[-1])
     print('Mass:', mass[0], mass[-1])
-    print('Time:', time[-1])
 
 def __debug():
 
     from scipy.integrate import solve_ivp
     from Parameter.parameter import Parameter
 
-    param = Parameter('rocket_config.csv')
+    param = Parameter('example/rocket_config.csv')
     pos0, vel0, quat0, omega0, mass0 = param.get_initial_param()
     time0 = 0.
     x0 = np.zeros(14)
@@ -350,4 +348,3 @@ if __name__=='__main__':
     print('Hello World!')
 
     __debug()
-    # __unit_test()
