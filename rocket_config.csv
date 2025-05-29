@@ -16,41 +16,41 @@ $ ----------------------------
 $ rocket airframe parameters
 $ ----------------------------
 $ rocket diameter [m]
-diameter, 0.120
+diameter, 0.121
 $ rocket length for axial [m]
-length, 2.0
+length, 2.288
 $ dry mass [kg]
-mass_dry, 6.79
+mass_dry, 7.4550
 $ oxidizer mass [kg]
 mass_ox, 0.663825
 $ fuel mass [kg]
 mass_fuel_bef, 0.38
 mass_fuel_aft, 0.295
 $ center of gravity (C.G.) in dry from end [m]
-lcg_dry, 0.878
+lcg_dry, 1.122
 $ center of gravity (C.G.) of oxidizer before lift-off from end [m]
-lcg_ox, 0.550
+lcg_ox, 0.335
 $ center of gravity (C.G.) of fuel from end [m]
 lcg_fuel, 0.139
 $ tank cap location from end [m]
 l_tank_cap, 0.279
 $ moment of inertial of dry mass wrt. CG_dry [kg-m^2]
-Ij_dry_pitch, 1.968
-Ij_dry_roll, 0.014
+Ij_dry_pitch, 3.4
+Ij_dry_roll, 0.016
 
 $ ----------------------------
 $ rocket aerodynamic parameters (at M = 0.3, AoA ~ 0deg)
 $ ----------------------------
 $ center of pressure (C.P.) from end [m]
-lcp, 0.636
+lcp, 0.727
 $ Axial force coefficient
-CA, 0.41
+CA, 0.6
 $ Slope of Normal foece coefficient [1/rad]
-CNa, 10.636
+CNa, 7.237
 $ roll damping coefficient
-Clp, -0.013
+Clp, -0.019
 $ pitch damping coefficient
-Cmq, -1.589
+Cmq, -2.588
 
 $ ----------------------------
 $ launch parameters
@@ -58,7 +58,7 @@ $ ----------------------------
 $ launcher elevetion angle [deg]
 launch_elevation,70
 $ azimuth [deg], North=0, East=90
-launch_azimuth,150.
+launch_azimuth,280.
 $ launcher rail lenght [m]
 rail_length,5.
 
@@ -68,24 +68,24 @@ $ ----------------------------
 $ time step [s]
 dt,0.001
 $ max time for computation [s]
-t_max,1000.
+t_max,500.
 
 $ ----------------------------
 $ wind parameters
 $ ----------------------------
 $ wind direction blowing from [deg]
-wind_azimuth,150.
+wind_azimuth,280.
 $ wind speed at wind_alt_std[m]
 wind_speed,3.
 $ wind power profile coefficient
-wind_power_coeff,6.
+wind_power_coeff,4.5
 $ reference altitude where wind speed is defined [m]
-wind_alt_ref,2.
+wind_alt_ref,5.
 $ wind model
 wind_model,power
 $wind_model, statistics
 $ forecast csv file
-wind_file, wind_parameters.json
+wind_file, wind.json
 
 $ ----------------------------
 $ engine parameters
@@ -98,7 +98,7 @@ thrust_input_type,time_curve
 $ thrust curve file
 thrust_file,thrust.csv
 $ burn time
-time_burn,6.0
+time_burn,3.6
 
 $ ----------------------------
 $ parachute parameters

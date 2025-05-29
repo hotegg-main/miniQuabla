@@ -1,14 +1,22 @@
 import numpy as np
 
+MODEL_POWER     = 'powewr'
+MODEL_ORIGINAL  = 'original'
+
 class Wind:
 
-    def __init__(self):
+    def __init__(self, config):
 
-        self.speed_ref      = 0.
-        self.altitude_ref   = 0.
-        self.azimuth_ref    = 0.
-        self.exponent       = 6.
+        self.model          = config['model']
+        self.speed_ref      = config['speed']
+        self.azimuth_ref    = np.deg2rad(config['azimuth'])
+        self.exponent       = config['power_coeff']
+        self.altitude_ref   = config['altitude']
         self.mag_dec        = 0.
+        
+        self.path_file = ''
+        if self.model == MODEL_ORIGINAL:
+            self.path_file = config['file']
 
     def get_wind_NED(self, altitude):
         
@@ -24,14 +32,21 @@ class Wind:
     
 if __name__=='__main__':
 
-    my = Wind()
-    my.speed_ref      = 3.
-    my.altitude_ref   = 2.
-    my.azimuth_ref    = 0.
-    my.exponent       = 4.5
-    my.mag_dec        = 0.
+    import matplotlib.pyplot as plt
+
+    config = dict()
+    config['model'] = 'power'
+    config['speed'] = 3.
+    config['azimuth']   = 0.
+    config['power_coeff']   = 4.5
+    config['altitude']  = 2.
+    my = Wind(config)
 
     alt_src = np.arange(0., 200, 1.).tolist()
     speed = [my.get_wind_NED(alt)[0] for alt in alt_src]
+
+    plt.figure()
+    plt.plot(speed, alt_src)
+    plt.show()
     
     print('End Debug')

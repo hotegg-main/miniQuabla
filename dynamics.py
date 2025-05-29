@@ -15,12 +15,13 @@ def dynamics_trajectory(time, x, param:Parameter):
     
     pos     = x[0:3]
     vel     = x[3:6]
-    quat    = np.quaternion(x[6], x[7], x[8], x[9])
+    quat    = quaternion.from_float_array(x[6:10]).normalized()
     omega   = x[10:13]
     mass    = x[13]
     
     dcm = quaternion.as_rotation_matrix(quat)
-    altitude = - pos[2]
+    # altitude = np.min([0., - pos[2]])
+    altitude = np.abs(pos[2])
     
     area_ref        = param.geomet.area
     length_ref      = param.geomet.length
@@ -28,7 +29,6 @@ def dynamics_trajectory(time, x, param:Parameter):
     mdot = param.engine.get_mass_flow_rate(time)
     lcg         = param.geomet.get_Lcg(time)
     Ij          = param.geomet.get_Ij(time)
-    # Ij_roll, Ij_pitch, Ij_yaw = Ij[0], Ij[1], Ij[2]
     
     g, rho, cs  = param.atmos.get_atmosphere(altitude)
     wind_NED    = param.wind.get_wind_NED(altitude)
@@ -52,7 +52,7 @@ def dynamics_trajectory(time, x, param:Parameter):
     # Force
     force_aero      = calc_aero_force(dynamic_pressure, alpha, beta, coeff_axial, coeff_normal, area_ref)
     force_thrust    = np.array([thrust, 0., 0.])
-    force_gravity   = dcm.T @ np.array([0., 0., g])
+    force_gravity   = dcm.T @ (mass * np.array([0., 0., g]))
 
     # Moment
     moment_aero         = calc_aero_moment(lcg, lcp, force_aero)
@@ -64,6 +64,9 @@ def dynamics_trajectory(time, x, param:Parameter):
     quat_dot    = calc_quat_dot(omega, quat)
 
     if not is_launch_clear(pos, dcm, param.launch.length):
+
+        if acc_body[0] < 0. and vel[0] < 0.:
+            acc_body[0:3] = 0.
 
         acc_body[1:3] = 0.
         omega_dot = np.zeros(3)
@@ -124,12 +127,12 @@ def calc_acceleration(force_aero, force_thrust, force_gravity, mass, vel, omega)
     acc /= mass
     acc += - np.cross(omega, vel)
 
-    return mass
+    return acc
 
 def calc_aero_moment(lcg, lcp, force_aero):
     '''空力モーメント（復元モーメント）'''
 
-    arm = np.array([lcg - lcp, 0.0, 0.0])
+    arm = np.array([lcp - lcg, 0.0, 0.0])
     
     return np.cross(arm, force_aero)
 
@@ -170,10 +173,10 @@ def calc_quat_dot(omega, quat):
     r = omega[2]
 
     tensor = np.array([
-        [.0,  r, -q,  p],
-        [-r, .0,  p,  q],
-        [ q, -p, .0,  r],
-        [-p, -q, -r, .0]
+        [.0, -p, -q, -r],
+        [ p, .0,  r, -q],
+        [ q, -r, .0,  p],
+        [ r,  q, -p, .0]
     ])
 
     return 0.5 * tensor @ quaternion.as_float_array(quat)
@@ -209,13 +212,18 @@ def __unit_test():
          ]
     )
 
-    vel_NED = [0.2305403462, -12.57858105, -31.56811072]
-    wind_NED = [0.2305403462, -12.57858105, -31.56811072]
+    # vel_NED = [0.2305403462, -12.57858105, -31.56811072]
+    # wind_NED = [0.2305403462, -12.57858105, -31.56811072]
+    
+    vel_NED  = np.zeros(3)
+    wind_NED = np.array([1.9311196386832172, 0.8124923839418335, -0.0])
 
-    # quat = quaternion.from_euler_angles(np.deg2rad([-88.95,	70,	-9.30E-15]))
-    quat = quaternion.from_euler_angles(np.deg2rad([-88.95, 68.24064192, 2.57E-14]))
+    quat = quaternion.from_euler_angles(np.deg2rad([0., 70., 280.])).normalized()
+    quat = quaternion.from_euler_angles(np.deg2rad([280., 70., 0.]))
+    # quat = quaternion.from_euler_angles(np.deg2rad([-88.95, 68.24064192, 2.57E-14]))
     # quat = quaternion.from_euler_angles(np.deg2rad([0, 68.24064192, -88.95]))
     dcm = quaternion.as_rotation_matrix(quat)
+    vel_air_body = dcm.T @ calc_air_speed(vel_NED, wind_NED)
     vel_Body = dcm.T @ vel_NED
     wind = dcm.T @ wind_NED
 
@@ -231,45 +239,115 @@ def __unit_test():
 
     print(vel_air)
 
-def __debug_dynamics():
+def event_land(time, x, param):
 
-    from scipy.integrate import solve_ivp
+    if x[2] < 0.:
+        return 1
+    else:
+        return 0
 
-    time_sta = 0.
-    time_max = 200.
+def __check_result(time, pos, vel, quat, omega, mass):
 
-    pos0    = np.array([0., 0., 0.])
-    vel0    = np.array([0., 0., 0.])
-    quat0   = quaternion.from_euler_angles(np.deg2rad([-88.95, 70., 0.]))
-    omega0  = np.array([0., 0., 0.])
-    mass0    = 8.118825
+    import matplotlib.pyplot as plt
 
-    x0 = np.zeros(14)
-    x0[0:3]     = pos0
-    x0[3:6]     = vel0
-    x0[6:10]    = quat0
-    x0[10:13]   = omega0
-    x0[13]      = mass0
+    plt.figure('Position')
+    plt.plot(time, pos[0, :])
+    plt.plot(time, pos[1, :])
+    plt.plot(time, pos[2, :])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Position' + '.png')
 
+    plt.figure('Velocity')
+    plt.plot(time, vel[0, :])
+    plt.plot(time, vel[1, :])
+    plt.plot(time, vel[2, :])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Velocity' + '.png')
+    
+    plt.figure('Quaternion')
+    plt.plot(time, quat[0, :])
+    plt.plot(time, quat[1, :])
+    plt.plot(time, quat[2, :])
+    plt.plot(time, quat[3, :])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Quaternion' + '.png')
 
-    result = solve_ivp(dynamics_trajectory, (time_sta, time_max), x0, args=(), )
+    quat_new = np.zeros((len(quat[0]), 4))
+    quat_new[:, 0] = quat[0]
+    quat_new[:, 1] = quat[1]
+    quat_new[:, 2] = quat[2]
+    quat_new[:, 3] = quat[3]
+    quat_new = [np.quaternion(q0, q1, q2, q3) for q0, q1, q2, q3 in zip(quat[0], quat[1], quat[2], quat[3])]
+    # quat_new = quat_new.tolist()
+    euler = np.rad2deg(np.array([quaternion.as_euler_angles(q) for q in quat_new]))
+
+    plt.figure('Euler')
+    plt.plot(time, euler[:, 0], label='Azimuth')
+    plt.plot(time, euler[:, 1], label='Elevation')
+    plt.plot(time, euler[:, 2], label='Roll')
+    plt.xlim(left=0., right=time[-1])
+    plt.legend()
+    plt.grid()
+    plt.savefig('test/' + 'Euler' + '.png')
+
+    plt.figure('Omega')
+    plt.plot(time, omega[0, :])
+    plt.plot(time, omega[1, :])
+    plt.plot(time, omega[2, :])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Omega' + '.png')
+    
+    plt.figure('Mass')
+    plt.plot(time, mass)
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Mass' + '.png')
+
+    # plt.show()
+
+def __check_value(time, pos, vel, quat, omega, mass):
+
+    index       = np.argmax( - pos[2])
+    alt_apogee  = - pos[2, index]
+    time_apogee = time[index]
+
+    print(time_apogee, alt_apogee)
+    print('Mass:', mass[0], mass[-1])
+    print('Time:', time[-1])
 
 def __debug():
 
+    from scipy.integrate import solve_ivp
+    from Parameter.parameter import Parameter
+
+    param = Parameter('rocket_config.csv')
+    pos0, vel0, quat0, omega0, mass0 = param.get_initial_param()
     time0 = 0.
-    pos0 = np.array([0., 0., 0.])
-    vel0 = np.array([0., 0., 0.])
-    omega0 = np.array([0., 0., 0.])
+    x0 = np.zeros(14)
+    x0[0:3]     = pos0
+    x0[3:6]     = vel0
+    x0[6:10]    = quaternion.as_float_array(quat0)
+    x0[10:13]   = omega0
+    x0[13]      = mass0
 
-
-    quat0 = quaternion.from_euler_angles(np.deg2rad([0., -70., 270.]))
-    euler0 = np.rad2deg(quaternion.as_euler_angles(quat0))
-
-    dynamics_trajectory(time0, pos0, vel0, quat0, omega0)
+    event_land.terminal = True
+    result = solve_ivp(dynamics_trajectory, t_span=(0., param.t_max), t_eval=np.arange(0., param.t_max, param.dt), y0=x0, args=(param, ), events=event_land, rtol=1.e-06, atol=1.e-04)
+    time_log = result.t
+    pos_log   = result.y[0:3]
+    vel_log   = result.y[3:6]
+    quat_log  = result.y[6:10]
+    omega_log = result.y[10:13]
+    mass_log  = result.y[13]
+    __check_result(time_log, pos_log, vel_log, quat_log, omega_log, mass_log)
+    __check_value(time_log, pos_log, vel_log, quat_log, omega_log, mass_log)
 
 if __name__=='__main__':
 
     print('Hello World!')
 
-    # __debug()
-    __unit_test()
+    __debug()
+    # __unit_test()

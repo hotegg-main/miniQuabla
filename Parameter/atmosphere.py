@@ -21,8 +21,8 @@ class Atmosphere:
 
     def get_atmosphere(self, altitude):
 
-        air_density = self.get_air_density(altitude)[0]
-        sound_speed = self.get_sound_speed(altitude)[0]
+        air_density = self.get_air_density(altitude)
+        sound_speed = self.get_sound_speed(altitude)
 
         gravity = 9.08665
 

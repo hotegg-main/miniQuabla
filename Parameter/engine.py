@@ -20,14 +20,18 @@ class Engine:
         time_array = thrust_data[:, 0]
         thrust_array = thrust_data[:, 1]
         self.get_thrust = interp1d(time_array, thrust_array, kind='linear', bounds_error=False, fill_value=(0., 0.))
+        #TODO: 推力最大値5%カット
         
         self.time_act = time_array[-1]
 
-        mdot_prop_const = - (self.delta_fuel + self.mass_ox) / self.time_act
+        self.mdot_prop_const = - (self.delta_fuel + self.mass_ox) / self.time_act
+        # self.get_mass_flow_rate = interp1d(np.array[0], thrust_array, kind='linear', bounds_error=False, fill_value=(0., 0.))
         
 
     def get_mass_flow_rate(self, time):
         ''''''
-
-    # def get_thrust(self, time):
-    #     '''推力'''
+        if time <= self.time_act:
+            return self.mdot_prop_const
+        
+        else:
+            return 0.

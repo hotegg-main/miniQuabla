@@ -11,10 +11,10 @@ class Geometry:
         self.area       = 0.25 * np.pi * self.diameter**2
 
         time_sta = 0.
-        time_act = 0. #
-        time_list = np.array([time_sta, time_act])
+        time_list = np.array([time_sta, engine.time_act])
 
         mass_dry = config['mass_dry']
+        self.mass_bef = mass_dry + engine.mass_ox
         
         lcg_dry = config['lcg_dry']                 # 乾燥重心
         lcg_bef = mass_dry * lcg_dry \
@@ -22,16 +22,16 @@ class Geometry:
         lcg_bef /= (mass_dry + engine.mass_ox)      # 燃焼前重心
         lcg_aft = mass_dry * lcg_dry - engine.delta_fuel * engine.lcg_fuel
         lcg_aft /= (mass_dry - engine.delta_fuel)   # 燃焼後重心
-        lcg_array = self.length - np.array([lcg_bef, lcg_aft]) # 先端基準に直す
+        lcg_array = np.array([lcg_bef, lcg_aft]) # 先端基準に直す
         self.calc_Lcg = interp1d(time_list, lcg_array, kind='linear', bounds_error=False, fill_value=(lcg_array[0], lcg_array[-1]))
 
-        Ij_pitch_dry = config['Ij_roll_dry']
+        Ij_roll_dry = config['Ij_roll_dry']
         Ij_pitch_dry = config['Ij_pitch_dry']
-        Ij_pitch_bef = 0. #
-        Ij_pitch_aft = 0. #
+        Ij_pitch_bef = Ij_pitch_dry #
+        Ij_pitch_aft = Ij_pitch_dry #
         Ij_pitch_array = np.array([Ij_pitch_bef, Ij_pitch_aft])
-        Ij_roll_bef = 0. #
-        Ij_roll_aft = 0. #
+        Ij_roll_bef = Ij_roll_dry #
+        Ij_roll_aft = Ij_roll_dry #
         Ij_roll_array = np.array([Ij_roll_bef, Ij_roll_aft])
         self.calc_Ij_pitch  = interp1d(time_list, Ij_pitch_array, kind='linear', bounds_error=False, fill_value=(Ij_pitch_array[0], Ij_pitch_array[-1]))
         self.calc_Ij_roll   = interp1d(time_list, Ij_roll_array, kind='linear', bounds_error=False, fill_value=(Ij_roll_array[0], Ij_roll_array[-1]))

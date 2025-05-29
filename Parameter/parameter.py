@@ -1,5 +1,6 @@
 import pandas as pd
-
+import numpy as np
+import quaternion
 
 class Parameter:
 
@@ -7,12 +8,15 @@ class Parameter:
 
         self.config = self.__allocate_df(self.__read_config(path_config))
 
-        self.aero   = Aerodynamic()
+        self.aero   = Aerodynamic(self.config['Aerodynamics'])
         self.atmos  = Atmosphere()
-        self.wind   = Wind()
+        self.wind   = Wind(self.config['Wind'])
         self.engine = Engine(self.config['Engine'])
         self.geomet = Geometry(self.config['Geometry'], self.engine)
-        self.launch = Launcher()
+        self.launch = Launcher(self.config['Launcher'])
+
+        self.dt = self.config['Solver']['dt']
+        self.t_max = self.config['Solver']['t_max']
 
     def __read_config(self, path):
         '''
@@ -64,6 +68,13 @@ class Parameter:
         config_dst['Aerodynamics']['Clp']   = float(config_src['Clp'])
         config_dst['Aerodynamics']['Cmq']   = float(config_src['Cmq'])
         
+        config_dst['Wind']['model']         = config_src['wind_model']
+        config_dst['Wind']['speed']         = float(config_src['wind_speed'])
+        config_dst['Wind']['azimuth']       = float(config_src['wind_azimuth'])
+        config_dst['Wind']['power_coeff']   = float(config_src['wind_power_coeff'])
+        config_dst['Wind']['altitude']      = float(config_src['wind_alt_ref'])
+        config_dst['Wind']['file']          = config_src['wind_file']
+        
         config_dst['Launcher']['elevation'] = float(config_src['launch_elevation'])
         config_dst['Launcher']['azimuth']   = float(config_src['launch_azimuth'])
         config_dst['Launcher']['length']    = float(config_src['rail_length'])
@@ -72,10 +83,47 @@ class Parameter:
         config_dst['Solver']['t_max']   = float(config_src['t_max'])
 
         return config_dst
+    
+    def get_initial_param(self):
+
+        vel = np.zeros(3)
+        omega = np.zeros(3)
+        
+        elev = np.deg2rad(self.launch.elevation)
+        azim = np.deg2rad(self.launch.azimuth)
+        roll = 0.
+        quat = quaternion.from_euler_angles(np.array([azim, elev, roll])).normalized()
+        dcm = quaternion.as_rotation_matrix(quat)
+        pos = dcm @ np.array([self.geomet.get_Lcg(0.), 0., 0.])
+
+        return pos, vel, quat, omega, self.geomet.mass_bef
+    
+def __deb_plot(time, lcg, thrust):
+
+    import matplotlib.pyplot as plt
+
+    plt.figure('C.G.')
+    plt.plot(time, lcg)
+    plt.xlim(left=time[0], right=time[-1])
+    plt.grid()
+
+    plt.figure('Thrust')
+    plt.plot(time, thrust)
+    plt.xlim(left=time[0], right=time[-1])
+    plt.grid()
+
+    plt.show()
 
 def __debug():
 
+    import numpy as np
+
     my = Parameter('rocket_config.csv')
+
+    time_list = np.arange(0., 30.01, 0.01)
+    lcg_list = my.geomet.get_Lcg(time_list)
+    thrust_list = my.engine.get_thrust(time_list)
+    __deb_plot(time_list, lcg_list, thrust_list)
 
     print('End Debug')
     # config_src = my.read_config('rocket_config.csv')
