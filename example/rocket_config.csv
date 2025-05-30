@@ -35,7 +35,7 @@ lcg_fuel, 0.139
 $ tank cap location from end [m]
 l_tank_cap, 0.279
 $ moment of inertial of dry mass wrt. CG_dry [kg-m^2]
-Ij_dry_pitch, 3.4
+Ij_dry_pitch, 2.3
 Ij_dry_roll, 0.016
 
 $ ----------------------------
@@ -103,6 +103,7 @@ time_burn,3.6
 $ ----------------------------
 $ parachute parameters
 $ ----------------------------
+vel_para_1st, 12.
 $ 1st parachute deployment time delay from apogee [s]
 t_para_delay, 1.
 $ drag coeff. of 1st parachute

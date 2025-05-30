@@ -13,18 +13,19 @@ class Atmosphere:
         t_list      = result.t.values
         rho_list    = result.rho.values 
         cs_list     = result.cs.values
+        g_list      = 9.08665 * np.array([1., 1., 1., 1., 1., 1., 1., 1.])
 
         self.get_pressure    = interp1d(alt_array, p_list, kind='linear', bounds_error=False, fill_value=(p_list[0], p_list[-1]))
         self.get_temperature = interp1d(alt_array, t_list, kind='linear', bounds_error=False, fill_value=(t_list[0], t_list[-1]))
         self.get_air_density = interp1d(alt_array, rho_list, kind='linear', bounds_error=False, fill_value=(rho_list[0], rho_list[-1]))
         self.get_sound_speed = interp1d(alt_array, cs_list, kind='linear', bounds_error=False, fill_value=(cs_list[0], cs_list[-1]))
+        self.get_gravity     = interp1d(alt_array, g_list, kind='linear', bounds_error=False, fill_value=(g_list[0], g_list[-1]))
 
     def get_atmosphere(self, altitude):
 
         air_density = self.get_air_density(altitude)
         sound_speed = self.get_sound_speed(altitude)
-
-        gravity = 9.08665
+        gravity     = self.get_gravity(altitude)
 
         return gravity, air_density, sound_speed
 

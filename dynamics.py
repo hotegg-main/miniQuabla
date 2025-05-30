@@ -81,6 +81,29 @@ def dynamics_trajectory(time, x, param:Parameter):
 
     return dxdt
 
+def dynamics_parachute(time, x, param:Parameter):
+    '''
+    Args:
+        time    :時間
+        pos     :位置(NED)
+        vel     :速度(Body)
+        quat    :クォータニオン
+        omega   :角速度
+        mass    :質量
+    '''
+    
+    pos     = x[0:3]
+    altitude = np.abs(pos[2])
+    wind_NED = param.wind.get_wind_NED(altitude)
+    vel_NED = np.zeros(3)
+    vel_NED[0:2] = wind_NED[0:2]
+    vel_NED[2] = param.para.vel_para_1st
+
+    dxdt = np.zeros(3)
+    dxdt[0:3] = vel_NED
+
+    return dxdt
+
 #####################################################################
 # Subroutine 
 #####################################################################
@@ -117,12 +140,23 @@ def calc_dynamic_pressure(vel_air_abs, air_density):
 
 def calc_aero_force(dynamic_pressure, alpha, beta, coeff_axial, coeff_normal, area_ref):
     '''空気力計算'''
+    return - dynamic_pressure * \
+            np.array([
+                coeff_axial,
+                coeff_normal,
+                coeff_normal
+            ]) \
+            * area_ref \
+            * np.array([
+                1.,
+                beta,
+                alpha
+            ])
+    # axial  = dynamic_pressure * coeff_axial  * area_ref
+    # normal = dynamic_pressure * coeff_normal * area_ref * alpha
+    # side   = dynamic_pressure * coeff_normal * area_ref * beta
     
-    axial  = dynamic_pressure * coeff_axial  * area_ref
-    normal = dynamic_pressure * coeff_normal * area_ref * alpha
-    side   = dynamic_pressure * coeff_normal * area_ref * beta
-    
-    return np.array([- axial, - side, - normal])
+    # return np.array([- axial, - side, - normal])
 
 def calc_acceleration(force_aero, force_thrust, force_gravity, mass, vel, omega):
 
@@ -202,6 +236,18 @@ def event_land(time, x, param):
 
 #### for Debug Function ###############################################
 
+def __check_result_para(time, pos):
+
+    import matplotlib.pyplot as plt
+
+    plt.figure('Position_Parachute')
+    plt.plot(time, pos[:, 0])
+    plt.plot(time, pos[:, 1])
+    plt.plot(time, pos[:, 2])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Position_Parachute' + '.png')
+
 def __check_result(time, pos, vel, quat, omega, mass, param):
 
     import matplotlib.pyplot as plt
@@ -265,11 +311,23 @@ def __check_result(time, pos, vel, quat, omega, mass, param):
     plt.grid()
     plt.savefig('test/' + 'Air_density' + '.png')
 
-    dcm = quaternion.as_rotation_matrix(quat_new)
-    vel_NED = np.array([d @ v for d, v in zip(dcm, vel.T)])
-    wind_NED = np.array([param.wind.get_wind_NED(alt) for alt in alt_log])
-    vel_air = np.array([d.T @ calc_air_speed(v, w) for d, v, w in zip(dcm, vel_NED, wind_NED)])
-    aoa = np.array([np.rad2deg(calc_angle_of_attack(v)) for v in vel_air])
+    dcm         = quaternion.as_rotation_matrix(quat_new)
+    vel_NED     = np.array([d @ v for d, v in zip(dcm, vel.T)])
+    wind_NED    = np.array([param.wind.get_wind_NED(alt) for alt in alt_log])
+    vel_air     = np.array([d.T @ calc_air_speed(v, w) for d, v, w in zip(dcm, vel_NED, wind_NED)])
+    vel_air_abs = np.array([np.linalg.norm(v) for v in vel_air])
+    aoa         = np.array([calc_angle_of_attack(v) for v in vel_air])
+    mach        = calc_mach_number(vel_air_abs, cs)
+    dynamic_pressure = calc_dynamic_pressure(vel_air_abs, rho)
+    coeff_A, coeff_Na = param.aero.get_coeffecient_force(mach)
+    force_aero      = np.array([calc_aero_force(d, a, b, coeff_A, coeff_Na, param.geomet.area) for d, a, b in zip(dynamic_pressure, aoa[:, 0], aoa[:, 1])])
+    force_thrust    = np.zeros((len(time), 3))
+    force_thrust[:, 0] = param.engine.get_thrust(time)
+    force_gravity   = ([d.T @ (m * np.array([0., 0., g])) for d, m in zip(dcm, mass)])
+    acc_body    = calc_acceleration(force_aero, force_thrust, force_gravity, np.array([mass, mass, mass]).T, vel.T, omega.T)
+    lcg = param.geomet.get_Lcg(time)
+    lcp = param.aero.get_Lcp(mach)
+    Fst = (lcg - lcp) / param.geomet.length * 100.
     
     plt.figure('Velocity_NED')
     plt.plot(time, vel_NED[:, 0])
@@ -288,14 +346,48 @@ def __check_result(time, pos, vel, quat, omega, mass, param):
     plt.savefig('test/' + 'Air_speed' + '.png')
     
     plt.figure('AoA_AoS')
-    plt.plot(time, aoa[:, 0])
-    plt.plot(time, aoa[:, 1])
+    plt.plot(time, np.rad2deg(aoa[:, 0]))
+    plt.plot(time, np.rad2deg(aoa[:, 1]))
     plt.xlim(left=0., right=time[-1])
     plt.ylim(bottom=-15., top=15.)
     plt.grid()
     plt.savefig('test/' + 'AoA_AoS' + '.png')
 
+    plt.figure('Mach')
+    plt.plot(time, mach)
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Mach' + '.png')
+    
+    plt.figure('Dynamic_Pressure')
+    plt.plot(time, dynamic_pressure)
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Dynamic_Pressure' + '.png')
+    
+    plt.figure('Fst')
+    plt.plot(time, Fst)
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Fst' + '.png')
+    
+    plt.figure('Force_aero')
+    plt.plot(time, force_aero[:, 0])
+    plt.plot(time, force_aero[:, 1])
+    plt.plot(time, force_aero[:, 2])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Force_aero' + '.png')
+    
+    plt.figure('Acc_body')
+    plt.plot(time, acc_body[:, 0])
+    plt.plot(time, acc_body[:, 1])
+    plt.plot(time, acc_body[:, 2])
+    plt.xlim(left=0., right=time[-1])
+    plt.grid()
+    plt.savefig('test/' + 'Acc_body' + '.png')
 
+    plt.close('all')
 
 def __check_value(time, pos, vel, quat, omega, mass):
 
@@ -331,6 +423,22 @@ def __debug():
     mass_log  = result.y[13]
     __check_result(time_log, pos_log, vel_log, quat_log, omega_log, mass_log, param)
     __check_value(time_log, pos_log, vel_log, quat_log, omega_log, mass_log)
+
+    index_apogee = np.argmax( - pos_log[2])
+    
+    time0 = time_log[index_apogee]
+    x0 = np.zeros(3)
+    x0[0:3] = pos_log[:, index_apogee]
+
+    result = solve_ivp(dynamics_parachute, t_span=(time0, param.t_max), t_eval=np.arange(time0, param.t_max, param.dt), y0=x0, args=(param, ), events=event_land, rtol=1.e-06, atol=1.e-04)
+    time_log = np.append(time_log[:index_apogee], result.t)
+    pos_log_para = np.zeros((len(time_log), 3))
+    pos_log_para[:index_apogee] = pos_log[:, :index_apogee].T
+    pos_log_para[index_apogee:] = result.y[0:3].T
+    # pos_log   = pos_log[:, :index_apogee].T
+    # pos_log   = np.append( pos_log, result.y[0:3].T)
+
+    __check_result_para(time_log, pos_log_para)
 
 if __name__=='__main__':
 

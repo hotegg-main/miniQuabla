@@ -14,6 +14,7 @@ class Parameter:
         self.engine = Engine(self.config['Engine'])
         self.geomet = Geometry(self.config['Geometry'], self.engine)
         self.launch = Launcher(self.config['Launcher'])
+        self.para   = Parachute(self.config['Parachute'])
 
         self.dt = self.config['Solver']['dt']
         self.t_max = self.config['Solver']['t_max']
@@ -46,6 +47,7 @@ class Parameter:
         config_dst['Engine'] = {}
         config_dst['Wind'] = {}
         config_dst['Launcher'] = {}
+        config_dst['Parachute'] = {}
         config_dst['Solver'] = {}
 
         config_dst['Geometry']['diameter']      = float(config_src['diameter'])
@@ -81,6 +83,8 @@ class Parameter:
         
         config_dst['Solver']['dt']      = float(config_src['dt'])
         config_dst['Solver']['t_max']   = float(config_src['t_max'])
+
+        config_dst['Parachute']['vel_para_1st'] = float(config_src['vel_para_1st'])
 
         return config_dst
     
@@ -149,3 +153,4 @@ else:
     from .engine import Engine
     from .geometry import Geometry
     from .launcher import Launcher
+    from .parachute import Parachute
