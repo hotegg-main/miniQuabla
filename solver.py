@@ -14,11 +14,11 @@ def run_single(path_config, path_result):
     elp = []
     elp.append(time.time())
     
-    time_log, pos_log, vel_log, quat_log, omega_log, mass_log, pos_log_para \
+    time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para \
         = solve_dynamics(param)
     elp.append(time.time())
     
-    plot_main_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, param)
+    plot_main_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param)
     elp.append(time.time())
     
     calc_sub_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, param)
@@ -144,11 +144,10 @@ def solve_dynamics(param: Parameter):
 
     t_eval = np.arange(time0, param.t_max, param.dt)
     result = solve_ivp(dynamics_parachute, t_span=(time0, param.t_max), t_eval=t_eval, y0=x0, args=(param, ), events=event_land, rtol=1.e-06, atol=1.e-04)
-    # result = odeint(dynamics_parachute, x0, t_eval, args=(param, ), rtol=1.e-06, atol=1.e-04)
-    # time_log = result.t
-    pos_log_para = result.y[0:3].T
+    time_log_para = result.t
+    pos_log_para  = result.y[0:3].T
 
-    return time_log, pos_log, vel_log, quat_log, omega_log, mass_log, pos_log_para
+    return time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para
 
 def solve_dynamics_for_loop(path, job, result):
     '''
@@ -163,7 +162,7 @@ def solve_dynamics_for_loop(path, job, result):
     # i = job['Column']
     # j = job['Row']
 
-    _, pos_log, _, _, _, _, pos_log_para = \
+    _, pos_log, _, _, _, _, _, pos_log_para = \
         solve_dynamics(param)
     
     res = dict()

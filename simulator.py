@@ -14,5 +14,5 @@ if __name__=='__main__':
     #################################################################
     # Single Condition Simulation
     #################################################################
-    # run_single(path_config, path_result)
-    run_loop(path_config, path_result)
+    run_single(path_config, path_result)
+    # run_loop(path_config, path_result)

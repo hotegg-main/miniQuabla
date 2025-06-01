@@ -16,6 +16,12 @@ plt.rcParams["xtick.major.width"] = 1.5
 plt.rcParams["ytick.major.width"] = 1.5
 plt.rcParams["axes.linewidth"] = 1.5
 
+color = ['#FF4B00',
+         '#005AFF',
+         '#03AF7A',
+         '#4DC4FF',
+         '#F6AA00',]
+
 def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
 
     quat_new    = quaternion.from_float_array(quat)
@@ -100,7 +106,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
     plot_vel_air(path, time, vel_air)                       # 対気速度
     plot_dynamic_pressure(path, time, dynamic_pressure)     # 動圧
     plot_aoa_aos(path, time, aoa)                           # 迎角、横滑り角
-    plot_safety_mach(path, time, mach)                      # マッハ数
+    plot_mach(path, time, mach)                      # マッハ数
     plot_static_margin(path, time, Fst)                     # Fst
     plot_atomosphere(path, time, grav, rho, cs)             # 
     plot_CG_CP(path, time, lcg, lcp)                        # 重心、圧力中心
@@ -111,13 +117,15 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
     plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro)
     plot_omega_dot(path, time, omega_dot)
 
-def plot_main_values(path, time, pos, vel, quat, omega, mass, param):
+def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para, param):
 
     plot_mass(path, time, mass)
     plot_pos(path, time, pos)
     plot_vel(path, time, vel)
     plot_omega(path, time, omega)
     plot_quternion(path, time, quat)
+    
+    plot_pos_para(path, time, pos, time_para, pos_para)
 
 #####################################################################
 # Subroutine 
@@ -126,7 +134,7 @@ def plot_main_values(path, time, pos, vel, quat, omega, mass, param):
 def plot_mass(path, time, mass):
 
     plt.figure('Mass')
-    plt.plot(time, mass)
+    plt.plot(time, mass, color=color[0])
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Mass [kg]')
@@ -138,9 +146,9 @@ def plot_mass(path, time, mass):
 def plot_pos(path, time, pos):
 
     plt.figure('Position')
-    plt.plot(time, pos[:, 0], label='North')
-    plt.plot(time, pos[:, 1], label='East')
-    plt.plot(time, pos[:, 2], label='Down')
+    plt.plot(time, pos[:, 0], color[0], label='North')
+    plt.plot(time, pos[:, 1], color[1], label='East')
+    plt.plot(time, pos[:, 2], color[2], label='Down')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Distance [m]')
@@ -150,12 +158,32 @@ def plot_pos(path, time, pos):
     plt.savefig(path + os.sep + 'Position' + '.png')
     plt.close()
 
+def plot_pos_para(path, time, pos, time_para, pos_para):
+
+    index = np.argmax(time >= time_para[0])
+
+    plt.figure('Position')
+    plt.plot(time[:index], pos[:index, 0], color=color[0], label='North')
+    plt.plot(time[:index], pos[:index, 1], color=color[1], label='East')
+    plt.plot(time[:index], pos[:index, 2], color=color[2], label='Down')
+    plt.plot(time_para, pos_para[:, 0], color=color[0], linestyle='--')
+    plt.plot(time_para, pos_para[:, 1], color=color[1], linestyle='--')
+    plt.plot(time_para, pos_para[:, 2], color=color[2], linestyle='--')
+    plt.xlim(left=0., right=time_para[-1])
+    plt.xlabel('Time [sec]')
+    plt.ylabel('Distance [m]')
+    plt.legend()
+    plt.minorticks_on()
+    plt.grid(linestyle='--')
+    plt.savefig(path + os.sep + 'Position_soft' + '.png')
+    plt.close()
+
 def plot_vel(path, time, vel):
 
     plt.figure('Velocity')
-    plt.plot(time, vel[:, 0], label='Roll')
-    plt.plot(time, vel[:, 1], label='Pitch')
-    plt.plot(time, vel[:, 2], label='Yaw')
+    plt.plot(time, vel[:, 0], color=color[0], label='Roll')
+    plt.plot(time, vel[:, 1], color=color[1], label='Pitch')
+    plt.plot(time, vel[:, 2], color=color[2], label='Yaw')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Speed [m/s]')
@@ -168,9 +196,9 @@ def plot_vel(path, time, vel):
 def plot_omega(path, time, omega):
 
     plt.figure('Anguler_Speed')
-    plt.plot(time, omega[:, 0], label='Roll')
-    plt.plot(time, omega[:, 1], label='Pitch')
-    plt.plot(time, omega[:, 2], label='Yaw')
+    plt.plot(time, omega[:, 0], color=color[0], label='Roll')
+    plt.plot(time, omega[:, 1], color=color[1], label='Pitch')
+    plt.plot(time, omega[:, 2], color=color[2], label='Yaw')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Anguler Speed [rad/s]')
@@ -184,11 +212,11 @@ def plot_quternion(path, time, quat):
 
     norm = np.array([np.linalg.norm(q) for q in quat])
     plt.figure('Quaternion')
-    plt.plot(time, quat[:, 0], label='q0')
-    plt.plot(time, quat[:, 1], label='q1')
-    plt.plot(time, quat[:, 2], label='q2')
-    plt.plot(time, quat[:, 3], label='q3')
-    plt.plot(time, norm, label='norm')
+    plt.plot(time, quat[:, 0], color=color[0], label='q0')
+    plt.plot(time, quat[:, 1], color=color[1], label='q1')
+    plt.plot(time, quat[:, 2], color=color[2], label='q2')
+    plt.plot(time, quat[:, 3], color=color[3], label='q3')
+    plt.plot(time, norm, color=color[4], label='norm')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Quaternion [-]')
@@ -201,9 +229,9 @@ def plot_quternion(path, time, quat):
 def plot_euler(path, time, euler):
 
     plt.figure('Euler_Angle')
-    plt.plot(time, euler[:, 0], label='Azimuth')
-    plt.plot(time, euler[:, 1], label='Elevation')
-    plt.plot(time, euler[:, 2], label='Roll')
+    plt.plot(time, euler[:, 0], color=color[0], label='Azimuth')
+    plt.plot(time, euler[:, 1], color=color[1], label='Elevation')
+    plt.plot(time, euler[:, 2], color=color[2], label='Roll')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Angle [deg]')
@@ -216,9 +244,9 @@ def plot_euler(path, time, euler):
 def plot_force_aero(path, time, force):
 
     plt.figure('Force_aero')
-    plt.plot(time, force[:, 0], label='Drag')
-    plt.plot(time, force[:, 1], label='Side Force')
-    plt.plot(time, force[:, 2], label='Normal Force')
+    plt.plot(time, force[:, 0], color=color[0], label='Drag')
+    plt.plot(time, force[:, 1], color=color[1], label='Side Force')
+    plt.plot(time, force[:, 2], color=color[2], label='Normal Force')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Force [N]')
@@ -231,9 +259,9 @@ def plot_force_aero(path, time, force):
 def plot_acc_body(path, time, acc):
     
     plt.figure('Acc_body')
-    plt.plot(time, acc[:, 0], label='Roll')
-    plt.plot(time, acc[:, 1], label='Pitch')
-    plt.plot(time, acc[:, 2], label='Yaw')
+    plt.plot(time, acc[:, 0], color=color[0], label='Roll')
+    plt.plot(time, acc[:, 1], color=color[1], label='Pitch')
+    plt.plot(time, acc[:, 2], color=color[2], label='Yaw')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Acceleration [$m/s^2$]')
@@ -246,9 +274,9 @@ def plot_acc_body(path, time, acc):
 def plot_vel_air(path, time, vel_air):
     
     plt.figure('Air_speed')
-    plt.plot(time, vel_air[:, 0], label='Roll')
-    plt.plot(time, vel_air[:, 1], label='Pitch')
-    plt.plot(time, vel_air[:, 2], label='Yaw')
+    plt.plot(time, vel_air[:, 0], color=color[0], label='Roll')
+    plt.plot(time, vel_air[:, 1], color=color[1], label='Pitch')
+    plt.plot(time, vel_air[:, 2], color=color[2], label='Yaw')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Speed [m/s]')
@@ -261,8 +289,8 @@ def plot_vel_air(path, time, vel_air):
 def plot_aoa_aos(path, time, aoa):
     
     plt.figure('AoA_AoS')
-    plt.plot(time, np.rad2deg(aoa[:, 0]), label='Angle of Attack')
-    plt.plot(time, np.rad2deg(aoa[:, 1]), label='Angle of Side-Slip')
+    plt.plot(time, np.rad2deg(aoa[:, 0]), color=color[0], label='Angle of Attack')
+    plt.plot(time, np.rad2deg(aoa[:, 1]), color=color[1], label='Angle of Side-Slip')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Angle [deg]')
@@ -276,7 +304,7 @@ def plot_aoa_aos(path, time, aoa):
 def plot_dynamic_pressure(path, time, dynamic_pressure):
 
     plt.figure('Dynamic_Pressure')
-    plt.plot(time, dynamic_pressure * 1.e-03)
+    plt.plot(time, dynamic_pressure * 1.e-03, color=color[0])
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Pressure [kPa]')
@@ -285,10 +313,10 @@ def plot_dynamic_pressure(path, time, dynamic_pressure):
     plt.savefig(path + os.sep + 'Dynamic_Pressure' + '.png')
     plt.close()
 
-def plot_safety_mach(path, time, mach):
+def plot_mach(path, time, mach):
 
     plt.figure('Mach_Numpber')
-    plt.plot(time, mach)
+    plt.plot(time, mach, color=color[0])
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Mach Numpber [-]')
@@ -300,8 +328,8 @@ def plot_safety_mach(path, time, mach):
 def plot_CG_CP(path, time, lcg, lcp):
 
     plt.figure('CG_CP')
-    plt.plot(time, lcg, label='C.G.')
-    plt.plot(time, lcp, label='C.P.')
+    plt.plot(time, lcg, label='C.G.', color=color[0])
+    plt.plot(time, lcp, label='C.P.', color=color[1])
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Length from End [m]')
@@ -314,7 +342,7 @@ def plot_CG_CP(path, time, lcg, lcp):
 def plot_static_margin(path, time, fst):
 
     plt.figure('Static_Margin')
-    plt.plot(time, fst)
+    plt.plot(time, fst, color=color[0])
     plt.xlim(left=0., right=time[-1])
     plt.ylim(bottom=5., top=25.)
     plt.xlabel('Time [sec]')
@@ -329,21 +357,21 @@ def plot_atomosphere(path, time, g, rho, cs):
     plt.figure('Atmosphere')
     
     plt.subplot(311)
-    plt.plot(time, g)
+    plt.plot(time, g, color=color[0])
     plt.xlim(left=0., right=time[-1])
     plt.ylabel('Gravity [$m/s^2$]')
     plt.minorticks_on()
     plt.grid(linestyle='--')
     
     plt.subplot(312)
-    plt.plot(time, rho)
+    plt.plot(time, rho, color=color[1])
     plt.xlim(left=0., right=time[-1])
     plt.ylabel('Air Density [$kg/m^3$]')
     plt.minorticks_on()
     plt.grid(linestyle='--')
     
     plt.subplot(313)
-    plt.plot(time, cs)
+    plt.plot(time, cs, color=color[2])
     plt.xlim(left=0., right=time[-1])
     plt.ylabel('Sound Speed [m/s]')
     plt.minorticks_on()
@@ -356,9 +384,9 @@ def plot_atomosphere(path, time, g, rho, cs):
 def plot_moment_aero(path, time, moment):
 
     plt.figure('Moment_aero')
-    plt.plot(time, moment[:, 0], label='Roll')
-    plt.plot(time, moment[:, 1], label='Pitch')
-    plt.plot(time, moment[:, 2], label='Yaw')
+    plt.plot(time, moment[:, 0], color=color[0], label='Roll')
+    plt.plot(time, moment[:, 1], color=color[1], label='Pitch')
+    plt.plot(time, moment[:, 2], color=color[2], label='Yaw')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Moment [Nm]')
@@ -371,9 +399,9 @@ def plot_moment_aero(path, time, moment):
 def plot_moment_aero_damping(path, time, moment):
 
     plt.figure('Moment_aero_damp')
-    plt.plot(time, moment[:, 0], label='Roll')
-    plt.plot(time, moment[:, 1], label='Pitch')
-    plt.plot(time, moment[:, 2], label='Yaw')
+    plt.plot(time, moment[:, 0], color=color[0], label='Roll')
+    plt.plot(time, moment[:, 1], color=color[1], label='Pitch')
+    plt.plot(time, moment[:, 2], color=color[2], label='Yaw')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Moment [Nm]')
@@ -386,9 +414,9 @@ def plot_moment_aero_damping(path, time, moment):
 def plot_moment_gyro(path, time, moment):
 
     plt.figure('Moment_gyro')
-    plt.plot(time, moment[:, 0], label='Roll')
-    plt.plot(time, moment[:, 1], label='Pitch')
-    plt.plot(time, moment[:, 2], label='Yaw')
+    plt.plot(time, moment[:, 0], color=color[0], label='Roll')
+    plt.plot(time, moment[:, 1], color=color[1], label='Pitch')
+    plt.plot(time, moment[:, 2], color=color[2], label='Yaw')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Moment [Nm]')
@@ -401,9 +429,9 @@ def plot_moment_gyro(path, time, moment):
 def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
 
     plt.figure('Moment-X')
-    plt.plot(time, moment_aero[:, 0]        , label='Aero')
-    plt.plot(time, moment_aero_damp[:, 0]   , label='Aero Damp.')
-    plt.plot(time, moment_gyro[:, 0]        , label='Gyro')
+    plt.plot(time, moment_aero[:, 0]        , color=color[0], label='Aero')
+    plt.plot(time, moment_aero_damp[:, 0]   , color=color[1], label='Aero Damp.')
+    plt.plot(time, moment_gyro[:, 0]        , color=color[2], label='Gyro')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Moment [Nm]')
@@ -414,9 +442,9 @@ def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
     plt.close()
     
     plt.figure('Moment-Y')
-    plt.plot(time, moment_aero[:, 1]        , label='Aero')
-    plt.plot(time, moment_aero_damp[:, 1]   , label='Aero Damp.')
-    plt.plot(time, moment_gyro[:, 1]        , label='Gyro')
+    plt.plot(time, moment_aero[:, 1]        , color=color[0], label='Aero')
+    plt.plot(time, moment_aero_damp[:, 1]   , color=color[1], label='Aero Damp.')
+    plt.plot(time, moment_gyro[:, 1]        , color=color[2], label='Gyro')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Moment [Nm]')
@@ -427,9 +455,9 @@ def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
     plt.close()
     
     plt.figure('Moment-Z')
-    plt.plot(time, moment_aero[:, 2]        , label='Aero')
-    plt.plot(time, moment_aero_damp[:, 2]   , label='Aero Damp.')
-    plt.plot(time, moment_gyro[:, 2]        , label='Gyro')
+    plt.plot(time, moment_aero[:, 2]        , color=color[0], label='Aero')
+    plt.plot(time, moment_aero_damp[:, 2]   , color=color[1], label='Aero Damp.')
+    plt.plot(time, moment_gyro[:, 2]        , color=color[2], label='Gyro')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Moment [Nm]')
@@ -442,9 +470,9 @@ def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
 def plot_omega_dot(path, time, omega_dot):
 
     plt.figure('Omega_dot')
-    plt.plot(time, omega_dot[:, 0], label='Roll')
-    plt.plot(time, omega_dot[:, 1], label='Pitch')
-    plt.plot(time, omega_dot[:, 2], label='Yaw')
+    plt.plot(time, omega_dot[:, 0], color=color[0], label='Roll')
+    plt.plot(time, omega_dot[:, 1], color=color[1], label='Pitch')
+    plt.plot(time, omega_dot[:, 2], color=color[2], label='Yaw')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Angular Acceleration [$rad/s^2$]')
@@ -459,9 +487,9 @@ def plot_coefficient_aero(path, time, coeff_A, coeff_Na):
     fig, ax1 = plt.subplots()
     ax1.set_title('Coefficient_Aero')
     ax2 = ax1.twinx()
-    ax1.plot(time, coeff_A , label='$C_D$')
-    ax1.plot(time, coeff_A, label='$C_{Na}$')
-    ax2.plot(time, coeff_Na, label='$C_{Na}$')
+    ax1.plot(time, coeff_A , color=color[0], label='$C_D$')
+    ax1.plot(time, coeff_A , color=color[0], label='$C_{Na}$')
+    ax2.plot(time, coeff_Na, color=color[1], label='$C_{Na}$')
     ax1.set_xlabel('Time [sec]')
     ax1.set_ylabel('Drag Coefficient [-]')
     ax2.set_ylabel('Slope of Normal Force Coefficient [1/rad]')
