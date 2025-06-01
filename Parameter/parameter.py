@@ -62,6 +62,7 @@ class Parameter:
         config_dst['Engine']['mass_fuel_aft']   = float(config_src['mass_fuel_aft'])
         config_dst['Engine']['lcg_ox']          = float(config_src['lcg_ox'])
         config_dst['Engine']['lcg_fuel']        = float(config_src['lcg_fuel'])
+        config_dst['Engine']['l_tank_cap']      = float(config_src['l_tank_cap'])
         config_dst['Engine']['thrust_file']     = config_src['thrust_file']
         
         config_dst['Aerodynamics']['lcp']   = float(config_src['lcp'])
@@ -80,6 +81,9 @@ class Parameter:
         config_dst['Launcher']['elevation'] = float(config_src['launch_elevation'])
         config_dst['Launcher']['azimuth']   = float(config_src['launch_azimuth'])
         config_dst['Launcher']['length']    = float(config_src['rail_length'])
+        config_dst['Launcher']['Latitude']  = float(config_src['lat'])
+        config_dst['Launcher']['Longtitude']= float(config_src['lon'])
+        config_dst['Launcher']['Height']    = float(config_src['height'])
         
         config_dst['Solver']['dt']      = float(config_src['dt'])
         config_dst['Solver']['t_max']   = float(config_src['t_max'])
@@ -96,8 +100,14 @@ class Parameter:
         elev = np.deg2rad(self.launch.elevation)
         azim = np.deg2rad(self.launch.azimuth)
         roll = 0.
+        # dcm = np.array([
+        #     [np.cos(azim) * np.cos(elev), np.sin(azim) * np.cos(elev), -np.sin(elev)],
+        #     [-np.sin(azim) * np.cos(roll) + np.cos(azim) * np.sin(elev) * np.sin(roll), np.cos(azim) * np.cos(roll) + np.sin(azim) * np.sin(elev) * np.sin(roll), np.cos(elev) * np.sin(roll)],
+        #     [np.sin(azim) * np.sin(roll) + np.cos(azim) * np.sin(elev) * np.cos(roll), -np.cos(azim) * np.sin(roll) + np.sin(azim) * np.sin(elev) * np.cos(roll), np.cos(elev) * np.cos(roll)]
+        # ]).T
         quat = quaternion.from_euler_angles(np.array([azim, elev, roll])).normalized()
         dcm = quaternion.as_rotation_matrix(quat)
+        quat = quaternion.from_rotation_matrix(dcm)
         pos = dcm @ np.array([self.geomet.get_Lcg(0.), 0., 0.])
 
         return pos, vel, quat, omega, self.geomet.mass_bef

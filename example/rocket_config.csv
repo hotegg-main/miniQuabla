@@ -61,6 +61,9 @@ $ azimuth [deg], North=0, East=90
 launch_azimuth,280.
 $ launcher rail lenght [m]
 rail_length,5.
+lat,40.242865
+lon,140.01045
+height,5.3
 
 $ ----------------------------
 $ numerical parameters
@@ -74,9 +77,9 @@ $ ----------------------------
 $ wind parameters
 $ ----------------------------
 $ wind direction blowing from [deg]
-wind_azimuth,280.
+wind_azimuth,90.
 $ wind speed at wind_alt_std[m]
-wind_speed,3.
+wind_speed,5.
 $ wind power profile coefficient
 wind_power_coeff,4.5
 $ reference altitude where wind speed is defined [m]

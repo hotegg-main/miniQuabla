@@ -22,13 +22,16 @@ class Geometry:
         lcg_bef /= (mass_dry + engine.mass_ox)      # 燃焼前重心
         lcg_aft = mass_dry * lcg_dry - engine.delta_fuel * engine.lcg_fuel
         lcg_aft /= (mass_dry - engine.delta_fuel)   # 燃焼後重心
-        lcg_array = np.array([lcg_bef, lcg_aft]) # 先端基準に直す
+        lcg_array = np.array([lcg_bef, lcg_aft]) 
         self.calc_Lcg = interp1d(time_list, lcg_array, kind='linear', bounds_error=False, fill_value=(lcg_array[0], lcg_array[-1]))
 
-        Ij_roll_dry = config['Ij_roll_dry']
+        Ij_roll_dry  = config['Ij_roll_dry']
         Ij_pitch_dry = config['Ij_pitch_dry']
-        Ij_pitch_bef = Ij_pitch_dry #
-        Ij_pitch_aft = Ij_pitch_dry #
+        Ij_pitch_ox = engine.mass_ox * ( self.diameter**2. / 16. + engine.l_tank**2. / 12. + (engine.lcg_ox - lcg_bef)**2 )
+        Ij_pitch_dry_bef = Ij_pitch_dry + mass_dry * np.abs(lcg_bef - lcg_dry) ** 2
+        Ij_pitch_dry_aft = Ij_pitch_dry
+        Ij_pitch_bef = Ij_pitch_dry_bef + Ij_pitch_ox 
+        Ij_pitch_aft = Ij_pitch_dry_aft
         Ij_pitch_array = np.array([Ij_pitch_bef, Ij_pitch_aft])
         Ij_roll_bef = Ij_roll_dry #
         Ij_roll_aft = Ij_roll_dry #

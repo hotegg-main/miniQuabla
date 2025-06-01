@@ -19,9 +19,11 @@ def dynamics_trajectory(time, x, param:Parameter):
     omega   = x[10:13]
     mass    = x[13]
     
+    # DCM_BODY->NED
+    # dcm = calc_DCM_NED2BODY(x[6:10]).T
     dcm = quaternion.as_rotation_matrix(quat)
-    # altitude = np.min([0., - pos[2]])
-    altitude = np.abs(pos[2])
+    altitude = np.max([1.e-03, - pos[2]])
+    # altitude = np.abs(pos[2])
     
     area_ref        = param.geomet.area
     length_ref      = param.geomet.length
@@ -63,7 +65,7 @@ def dynamics_trajectory(time, x, param:Parameter):
     omega_dot   = calc_omega_dot(moment_aero, moment_aero_damp, moment_gyro, Ij)
     quat_dot    = calc_quat_dot(omega, quat)
 
-    if not is_launch_clear(pos, dcm, param.launch.length):
+    if not is_launch_clear(time, pos, dcm, param):
 
         if acc_body[0] < 0. and vel[0] < 0.:
             acc_body[0:3] = 0.
@@ -107,6 +109,19 @@ def dynamics_parachute(time, x, param:Parameter):
 #####################################################################
 # Subroutine 
 #####################################################################
+def calc_DCM_NED2BODY(quat):
+
+    q0 = quat[0]
+    q1 = quat[1]
+    q2 = quat[2]
+    q3 = quat[3]
+    
+    return np.array([
+        [q0*q0 + q1*q1 - q2*q2 - q3*q3, 2.*(q1*q2 + q0*q3)           , 2.*(q1*q3 - q0*q2)           ], 
+        [2.*(q1*q2 - q0*q3)           , q0*q0 - q1*q1 + q2*q2 - q3*q3, 2.*(q2*q3 + q0*q1)           ], 
+        [2.*(q1*q3 + q0*q2)           , 2.*(q2*q3 - q0*q1)           , q0*q0 - q1*q1 - q2*q2 + q3*q3]
+    ])
+    
 
 def calc_air_speed(vel: np.ndarray, wind: np.ndarray):
     '''対気速度計算'''
@@ -123,6 +138,7 @@ def calc_angle_of_attack(vel_air:np.ndarray):
     beta  = 0.
 
     if norm > 0.:
+        # alpha = np.arcsin(vel_air[2] / norm)
         alpha = np.arctan2(vel_air[2], vel_air[0])
         beta  = np.arcsin(vel_air[1] / norm)
 
@@ -218,14 +234,16 @@ def calc_quat_dot(omega, quat):
 
     return 0.5 * tensor @ quaternion.as_float_array(quat)
 
-def is_launch_clear(pos, dcm, l_launcher):
+def is_launch_clear(time, pos, dcm, param: Parameter):
 
+    l_launcher = param.launch.length
+    time_act   = param.engine.time_act
     distance = (dcm.T @ pos)[0]
 
-    if distance > l_launcher:
-        return True
-    else:
+    if distance <  l_launcher and time < time_act:
         return False
+    else:
+        return True
 
 def event_land(time, x, param):
 

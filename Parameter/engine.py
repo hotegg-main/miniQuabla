@@ -13,8 +13,10 @@ class Engine:
         self.mass_fuel_aft   = config['mass_fuel_aft']
         self.lcg_ox          = config['lcg_ox']
         self.lcg_fuel        = config['lcg_fuel']
+        l_tank_cap           = config['l_tank_cap']
         self.delta_fuel = self.mass_fuel_bef - self.mass_fuel_aft
         
+        self.l_tank = 2. * np.abs(l_tank_cap - self.lcg_ox)
         path = config['thrust_file']
         thrust_data = np.loadtxt(path, delimiter=',', skiprows=1, usecols=(0, 1))
         time_array = thrust_data[:, 0]
