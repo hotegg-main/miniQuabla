@@ -71,6 +71,7 @@ def dynamics_trajectory(time, x, param:Parameter):
             acc_body[0:3] = 0.
 
         acc_body[1:3] = 0.
+        vel[1:3] = 0.
         omega_dot = np.zeros(3)
         quat_dot = np.zeros(4)
 
@@ -238,7 +239,7 @@ def is_launch_clear(time, pos, dcm, param: Parameter):
 
     l_launcher = param.launch.length
     time_act   = param.engine.time_act
-    distance = (dcm.T @ pos)[0]
+    distance = (dcm.T @ pos)[0] - param.geomet.get_Lcg(time)
 
     if distance <  l_launcher and time < time_act:
         return False

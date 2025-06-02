@@ -66,7 +66,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
     # Summary
     ########################################
     Fst_max, Fst_min    = calc_max_min_Fst(Fst)
-    index_launch_clear  = calc_index_launch_clear(pos, dcm, param)
+    index_launch_clear  = calc_index_launch_clear(pos, dcm, param, lcg)
     index_apogee        = calc_index_apogee(pos)
     index_max_air_speed = calc_max_air_speed(vel_air_abs)
     index_max_Q         = calc_max_Q(dynamic_pressure)
@@ -80,7 +80,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
         'Min. Fst [%]: ', str(round(Fst_min, 3)), '\n',
         '\n',
         'Launch Clear, Time [sec]           : ', str(round(time[index_launch_clear], 3)), '\n'
-        'Launch Clear, Velocity [m/s]       : ', str(round(vel_air_abs[index_launch_clear], 3)), '\n'
+        'Launch Clear, Velocity [m/s]       : ', str(round(vel[index_launch_clear, 0], 3)), '\n'
         'Launch Clear, Acceleration [m/s^2] : ', str(round(np.linalg.norm(acc_body[index_launch_clear]), 3)), '\n'
         'Launch Clear, Acceleration [G]     : ', str(round(np.linalg.norm(acc_body[index_launch_clear]) / grav[index_launch_clear], 3)), '\n'
         '\n',
@@ -510,10 +510,10 @@ def calc_max_min_Fst(fst):
 
     return fst_max, fst_min
 
-def calc_index_launch_clear(pos, dcm, param):
+def calc_index_launch_clear(pos, dcm, param, lcg):
     ''''''
     distance = np.array([(d.T @ p)[0] for d, p in zip(dcm, pos)])
-    return np.argmax(distance - param.launch.length > 0.)
+    return np.argmax(distance - lcg - param.launch.length > 0.)
 
 def calc_index_apogee(pos):
     ''''''
