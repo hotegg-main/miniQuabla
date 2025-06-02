@@ -1,0 +1,7 @@
+scipy
+matplotlib
+numpy
+numpy-quaternion
+ussa1976
+tqdm
+simplekml
