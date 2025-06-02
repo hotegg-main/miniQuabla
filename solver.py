@@ -35,7 +35,7 @@ def run_loop(path_config, path_result):
     '''落下分散計算用の関数'''
     import multiprocessing
     from PostProcess.land_map import plot_kml
-    # from tqdm import tqdm
+    from tqdm import tqdm
 
     job_list = []
     manager = multiprocessing.Manager()
@@ -66,7 +66,7 @@ def run_loop(path_config, path_result):
             job_list.append(job)
 
     p_list = []
-    for job in job_list:
+    for job in tqdm(job_list):
 
         p = multiprocessing.Process(target=solve_dynamics_for_loop, args=(path_config, job, result_list))
         p_list.append(p)
