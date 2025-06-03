@@ -25,9 +25,9 @@ def run_single(path_config, path_result):
     elp.append(time.time())
     
     # 経過時間
-    print('Solve ODE :', elp[1] - elp[0])
-    print('Plot      :', elp[2] - elp[1])
-    print('Calc Other:', elp[3] - elp[2])
+    print('Solve ODE :', np.round(elp[1] - elp[0], 3), 'sec')
+    print('Plot      :', np.round(elp[2] - elp[1], 3), 'sec')
+    print('Calc Other:', np.round(elp[3] - elp[2], 3), 'sec')
 
     print(' ---> Simulation END Successfully!')
 
@@ -91,7 +91,7 @@ def run_loop(path_config, path_result, cond):
         p.join()
     
     elp.append(time.time())
-    print('Elapse:', elp[1] - elp[0])
+    print('Elapse:', np.round(elp[1] - elp[0], 3), 'sec')
 
     result_hard = np.zeros((col, row, 3))
     result_soft = np.zeros((col, row, 3))

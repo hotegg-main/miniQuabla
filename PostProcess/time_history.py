@@ -29,11 +29,11 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
     dcmT        = np.array([d.T for d in dcm])
     euler = np.rad2deg(np.array([np.array([np.arctan2(d[0, 1], d[0, 0]), np.arcsin(-d[0, 2]), np.arctan2(d[1, 2], d[2, 2])]) for d in dcmT]))
 
-    alt_log = np.abs(pos[:, 2])
+    altitude = np.abs(pos[:, 2])
     downrange           = np.array([np.linalg.norm(p[:2]) for p in pos])
-    grav, rho, cs       = param.atmos.get_atmosphere(alt_log)
+    grav, rho, cs       = param.atmos.get_atmosphere(altitude)
     vel_NED             = np.array([d @ v for d, v in zip(dcm, vel)])
-    wind_NED            = np.array([param.wind.get_wind_NED(alt) for alt in alt_log])
+    wind_NED            = np.array([param.wind.get_wind_NED(alt) for alt in altitude])
     vel_air             = np.array([d.T @ calc_air_speed(v, w) for d, v, w in zip(dcm, vel_NED, wind_NED)])
     vel_air_abs         = np.array([np.linalg.norm(v) for v in vel_air])
     aoa                 = np.array([calc_angle_of_attack(v) for v in vel_air])
@@ -85,13 +85,25 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
         'Launch Clear, Acceleration [G]     : ', str(round(np.linalg.norm(acc_body[index_launch_clear]) / grav[index_launch_clear], 3)), '\n'
         '\n',
         'Apogee, Time [sec]     : ', str(round(time[index_apogee], 3)), '\n'
-        'Apogee, Altitude [km]  : ', str(round(alt_log[index_apogee] * 1.e-03, 3)), '\n'
+        'Apogee, Altitude [km]  : ', str(round(altitude[index_apogee] * 1.e-03, 3)), '\n'
         'Apogee, Dwonrange [km] : ', str(round(downrange[index_apogee] * 1.e-03, 3)), '\n'
         'Apogee, Air Speed [m/s]: ', str(round(vel_air_abs[index_apogee], 3)), '\n'
         '\n',
-        'Landing(Hard), Time [sec]      : ', str(round(time[-1], 3)), '\n'
-        'Landing(Hard), Downrange [km]  : ', str(round(downrange[-1] * 1.e-03, 3)), '\n'
-        # 'Landing(Hard), NED [m, m]      : ', str(round(downrange[-1] * 1.e-03, 3)), '\n'
+        'Max Air Speed, Time [sec]        : ', str(round(time[index_max_air_speed], 3)), '\n'
+        'Max Air Speed, Speed [m/s]       : ', str(round(vel_air_abs[index_max_air_speed], 3)), '\n'
+        'Max Air Speed, Altitude [km]     : ', str(round(altitude[index_max_air_speed] * 1.e-03, 3)), '\n'
+        '\n',
+        'Max-Q, Time [sec]              : ', str(round(time[index_max_Q], 3)), '\n'
+        'Max-Q, Dynamics Pressure [kPa] : ', str(round(dynamic_pressure[index_max_Q] * 1.e-03, 3)), '\n'
+        'Max-Q, Altitude [km]           : ', str(round(altitude[index_max_Q] * 1.e-03, 3)), '\n'
+        '\n',
+        'Max Mach, Time [sec]       : ', str(round(time[index_max_mach], 3)), '\n'
+        'Max Mach, Mach Number [-]  : ', str(round(mach[index_max_mach], 3)), '\n'
+        'Max Mach, Altitude [km]    : ', str(round(altitude[index_max_mach] * 1.e-03, 3)), '\n'
+        '\n',
+        'Landing(Hard), Time [sec]        : ', str(round(time[-1], 3)), '\n'
+        'Landing(Hard), Downrange [km]    : ', str(round(downrange[-1] * 1.e-03, 3)), '\n'
+        'Landing(Hard), East, North [m, m]: ', str(round(pos[-1, 1], 3)), ', ', str(round(pos[-1, 0], 3)), '\n'
     ]
 
     with open(path + os.sep + 'summary.txt', mode='w', encoding='utf-8') as f:
