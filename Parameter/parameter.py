@@ -85,6 +85,7 @@ class Parameter:
         config_dst['Launcher']['Latitude']  = float(config_src['lat'])
         config_dst['Launcher']['Longtitude']= float(config_src['lon'])
         config_dst['Launcher']['Height']    = float(config_src['height'])
+        config_dst['Launcher']['mag_dec']   = float(config_src['mag_dec'])
         
         config_dst['Solver']['dt']      = float(config_src['dt'])
         config_dst['Solver']['t_max']   = float(config_src['t_max'])

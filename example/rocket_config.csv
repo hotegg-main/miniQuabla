@@ -64,6 +64,7 @@ rail_length,5.
 lat,40.242865
 lon,140.01045
 height,5.3
+mag_dec,8.95
 
 $ ----------------------------
 $ numerical parameters
@@ -86,18 +87,10 @@ $ reference altitude where wind speed is defined [m]
 wind_alt_ref,5.
 $ wind model
 wind_model,power
-$wind_model, statistics
-$ forecast csv file
-wind_file, wind.json
 
 $ ----------------------------
 $ engine parameters
 $ ----------------------------
-$ thrust_input_type =
-$	'rectangle'     for constant thrust. Requires "thrust"[N], "t_MECO"[s]
-$ 	'curve_const_t' for thrust log with constant time step. Requires "thrust_dt"[s] and "thrust_filename"
-$   'time_curve'    for time and Thrust log. Requires "thrust_filename"
-thrust_input_type,time_curve
 $ thrust curve file
 thrust_file,example/thrust.csv
 $ burn time
@@ -107,12 +100,6 @@ $ ----------------------------
 $ parachute parameters
 $ ----------------------------
 vel_para_1st, 12.
-$ 1st parachute deployment time delay from apogee [s]
-t_para_delay, 1.
-$ drag coeff. of 1st parachute
-Cd_para, 1.2
-$ net area of 1st parachute [m^2]
-S_para, 0.215
 $ whether 2nd parachute is deployed or not
 second_para, True
 $ 2nd parachute deployment time from take-off

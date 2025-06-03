@@ -11,3 +11,4 @@ class Launcher:
                                     config['Height']])
         self.length     = config['length']
         self.pos_LLH = np.zeros(3)
+        self.mag_dec    = - np.abs(config['mag_dec'])

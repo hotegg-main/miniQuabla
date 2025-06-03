@@ -8,7 +8,19 @@ from matplotlib.pyplot import ylim
 
 #LLH :[latitude, longtitude, height] = [緯度,経度,高度]
 
-def NED2LLH(launch_LLH, pos_NED):
+def NED2LLH(launch_LLH, pos_NED, mag_dec):
+    '''
+    Args:
+        mag_dec: 磁気偏角 [deg]
+    '''
+    
+    # 磁気偏角分回転させるための回転行列
+    theta = np.deg2rad(mag_dec)
+    mat = np.array([
+        [np.cos(theta), - np.sin(theta), 0.],
+        [np.sin(theta),   np.cos(theta), 0.],
+        [           0.,              0., 0.]
+    ])
     
     lat = np.deg2rad(launch_LLH[0])
     lon = np.deg2rad(launch_LLH[1])
@@ -17,23 +29,23 @@ def NED2LLH(launch_LLH, pos_NED):
 
     launch_ECEF = __LLH2ECEF(launch_LLH)
     DCM_NED2ECEF = __ECEF2NED(LLH)
-    point_ECEF = np.dot(pos_NED,DCM_NED2ECEF) + launch_ECEF
+    point_ECEF = np.dot(mat @ pos_NED,DCM_NED2ECEF) + launch_ECEF
 
     point_LLH = __ECEF2LLH(point_ECEF)
     return point_LLH
 
-def NED2LLHforKml(launch_LLH, pos_NED):
+def NED2LLHforKml(launch_LLH, pos_NED, mag_dec):
 
-    lat = np.deg2rad(launch_LLH[0])
-    lon = np.deg2rad(launch_LLH[1])
-    height = launch_LLH[2]
-    LLH = np.array([lat, lon, height])#rad rad m
+    # lat = np.deg2rad(launch_LLH[0])
+    # lon = np.deg2rad(launch_LLH[1])
+    # height = launch_LLH[2]
+    # LLH = np.array([lat, lon, height])#rad rad m
 
-    launch_ECEF = __LLH2ECEF(launch_LLH)
-    DCM_NED2ECEF = __ECEF2NED(LLH).transpose()
-    point_ECEF = DCM_NED2ECEF.dot(pos_NED) + launch_ECEF
+    # launch_ECEF = __LLH2ECEF(launch_LLH)
+    # DCM_NED2ECEF = __ECEF2NED(LLH).transpose()
+    # point_ECEF = DCM_NED2ECEF.dot(pos_NED) + launch_ECEF
 
-    point_LLH = __ECEF2LLH(point_ECEF)
+    point_LLH = NED2LLH(launch_LLH, pos_NED, mag_dec)
     return np.array([point_LLH[1], point_LLH[0], 0.0])
 
 def __LLH2ECEF(LLH):

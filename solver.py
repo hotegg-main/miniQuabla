@@ -102,7 +102,7 @@ def run_loop(path_config, path_result, cond):
         result_soft[i][j] = result['Pos_soft']
 
     dummy = Parameter(path_config)
-    plot_kml(path_result, dummy.launch.LLH, result_hard, result_soft, speed_array)
+    plot_kml(path_result, dummy.launch.LLH, dummy.launch.mag_dec, result_hard, result_soft, speed_array)
     
     print(' ---> Simulation END Successfully!')
 

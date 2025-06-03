@@ -5,7 +5,7 @@ import os
 import matplotlib.cm as cm
 import numpy as np
 
-def plot_kml(path, launch_LLH, pos_hard, pos_soft, wind_array):
+def plot_kml(path, launch_LLH, mag_dec, pos_hard, pos_soft, wind_array):
 
     col = len(pos_hard)
     row = len(pos_hard[0])
@@ -17,11 +17,11 @@ def plot_kml(path, launch_LLH, pos_hard, pos_soft, wind_array):
 
     for i in range(col):
         for j in range(row):    
-            llh_hard[i][j] = NED2LLH(launch_LLH, pos_hard[i][j])
-            llh_soft[i][j] = NED2LLH(launch_LLH, pos_soft[i][j])
+            llh_hard[i][j] = NED2LLH(launch_LLH, pos_hard[i][j], mag_dec)
+            llh_soft[i][j] = NED2LLH(launch_LLH, pos_soft[i][j], mag_dec)
             
-            llh_Kml_hard[i][j] = NED2LLHforKml(launch_LLH, pos_hard[i][j])
-            llh_Kml_soft[i][j] = NED2LLHforKml(launch_LLH, pos_soft[i][j])
+            llh_Kml_hard[i][j] = NED2LLHforKml(launch_LLH, pos_hard[i][j], mag_dec)
+            llh_Kml_soft[i][j] = NED2LLHforKml(launch_LLH, pos_soft[i][j], mag_dec)
     
     __output_kml(path, llh_Kml_hard, llh_Kml_soft, wind_array, cm.cool)
 
