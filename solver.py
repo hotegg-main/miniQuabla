@@ -31,7 +31,7 @@ def run_single(path_config, path_result):
 
     print(' ---> Simulation END Successfully!')
 
-def run_loop(path_config, path_result):
+def run_loop(path_config, path_result, cond):
     '''落下分散計算用の関数'''
     import multiprocessing
     from PostProcess.land_map import plot_kml
@@ -41,17 +41,16 @@ def run_loop(path_config, path_result):
     manager = multiprocessing.Manager()
     result_list = manager.list()
 
-    col = 7 # Speed
-    row = 8 # Azimuth
-    speed_sta  = 1.
-    speed_step = 2.
-    azimuth_sta = 0.
+    col = cond['Speed']['num']   # Speed
+    row = cond['Azimuth']['num'] # Azimuth
+    speed_sta   = cond['Speed']['min']
+    speed_step  = cond['Speed']['step']
+    azimuth_sta = cond['Azimuth']['min']
     row += 1
     azimuth_step = 360. / (row - 1)
-    speed_end  = 1.
-    azimuth_end = azimuth_step * row + azimuth_sta
+    azimuth_end  = azimuth_step * row + azimuth_sta
 
-    speed_array = np.linspace(speed_sta, speed_sta + col*speed_step, col+1)
+    speed_array   = np.linspace(speed_sta, speed_sta + col*speed_step, col+1)
     azimuth_array = np.deg2rad(np.linspace(azimuth_sta, azimuth_end, row+1))
     
     elp = []
