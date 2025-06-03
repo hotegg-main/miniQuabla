@@ -34,7 +34,7 @@ def __output_kml(path, hard_LLH, soft_LLH, wind_array, color_cm):
     col = len(hard_LLH)
     for hard in hard_LLH:
         
-        linestring = kml.newlinestring(name=str(wind_array[i]))
+        linestring = kml.newlinestring(name=str(wind_array[i]) + 'm/s, Trajectory')
         r = int(color_cm( i / col )[0] * 255)
         g = int(color_cm( i / col )[1] * 255)
         b = int(color_cm( i / col )[2] * 255)
@@ -48,7 +48,7 @@ def __output_kml(path, hard_LLH, soft_LLH, wind_array, color_cm):
     i = 0
     for hard in soft_LLH:
         
-        linestring = kml.newlinestring(name=str(wind_array[i]))
+        linestring = kml.newlinestring(name=str(wind_array[i]) + 'm/s, Parachute')
         r = int(color_cm( i / col )[0] * 255)
         g = int(color_cm( i / col )[1] * 255)
         b = int(color_cm( i / col )[2] * 255)

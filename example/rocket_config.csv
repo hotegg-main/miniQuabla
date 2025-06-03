@@ -87,6 +87,7 @@ $ reference altitude where wind speed is defined [m]
 wind_alt_ref,5.
 $ wind model
 wind_model,power
+wind_file,example/wind.csv
 
 $ ----------------------------
 $ engine parameters
