@@ -64,7 +64,7 @@ class Parameter:
         config_dst['Engine']['lcg_fuel']        = float(config_src['lcg_fuel'])
         config_dst['Engine']['l_tank_cap']      = float(config_src['l_tank_cap'])
         config_dst['Engine']['thrust_file']     = config_src['thrust_file']
-        config_dst['Engine']['time_burn']       = float(config_src['time_burn'])
+        # config_dst['Engine']['time_burn']       = float(config_src['time_burn'])
         
         config_dst['Aerodynamics']['lcp']   = float(config_src['lcp'])
         config_dst['Aerodynamics']['CA']    = float(config_src['CA'])

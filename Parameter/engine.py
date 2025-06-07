@@ -15,7 +15,7 @@ class Engine:
         self.lcg_ox         = config['lcg_ox']
         self.lcg_fuel       = config['lcg_fuel']
         l_tank_cap          = config['l_tank_cap']
-        self.time_burn      = config['time_burn']
+        # self.time_burn      = config['time_burn']
         self.delta_fuel = self.mass_fuel_bef - self.mass_fuel_aft
         
         self.l_tank = 2. * np.abs(l_tank_cap - self.lcg_ox)

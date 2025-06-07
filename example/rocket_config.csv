@@ -1,113 +1,108 @@
 $ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 $          ROCKET PARAMETERS INPUT for miniQuabla         
 $ ---------------------------------------------------------
-$  Team     : STEP
-$  Project  : TSUKUBA-STEP15
-$  Name     : PROGRESS
-$  Author   : hot-egg
-$  Date     : 2020/08/09
-$  Version  : 1.0.0 
+Team     :,STEP
+Project  :,TSUKUBA-STEP15
+Name     :,PROGRESS
+Author   :,hot-egg
+Date     :,2020/08/09
+Version  :,1.0.0 
 $ ---------------------------------------------------------
 $                   !!! CAUTION !!!
 $ Comment line must be started $
+$ Azimuth Definition: North to East (clockwise) _ 0deg 360deg
+$ Length Definition: Length from Rocket End(tail)
 $ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-$ ----------------------------
-$ rocket airframe parameters
-$ ----------------------------
-$ rocket diameter [m]
-diameter, 0.121
-$ rocket length for axial [m]
-length, 2.288
-$ dry mass [kg]
-mass_dry, 7.4550
-$ oxidizer mass [kg]
-mass_ox, 0.663825
-$ fuel mass [kg]
-mass_fuel_bef, 0.38
-mass_fuel_aft, 0.295
-$ center of gravity (C.G.) in dry from end [m]
-lcg_dry, 1.122
-$ center of gravity (C.G.) of oxidizer before lift-off from end [m]
-lcg_ox, 0.335
-$ center of gravity (C.G.) of fuel from end [m]
-lcg_fuel, 0.139
-$ tank cap location from end [m]
-l_tank_cap, 0.279
-$ moment of inertial of dry mass wrt. CG_dry [kg-m^2]
-Ij_dry_pitch, 2.3
-Ij_dry_roll, 0.016
-
-$ ----------------------------
-$ rocket aerodynamic parameters (at M = 0.3, AoA ~ 0deg)
-$ ----------------------------
-$ center of pressure (C.P.) from end [m]
-lcp, 0.727
-$ Axial force coefficient
-CA, 0.6
-$ Slope of Normal foece coefficient [1/rad]
-CNa, 7.237
-$ roll damping coefficient
-Clp, -0.019
-$ pitch damping coefficient
-Cmq, -2.588
-
-$ ----------------------------
-$ launch parameters
-$ ----------------------------
-$ launcher elevetion angle [deg]
-launch_elevation,70
-$ azimuth [deg], North=0, East=90
-launch_azimuth,280.
-$ launcher rail lenght [m]
-rail_length,5.
+$ ---------------------------------------------------------
+$ Launch Point
+$ ---------------------------------------------------------
 lat,40.242865
 lon,140.01045
 height,5.3
 mag_dec,8.95
 
+$ ---------------------------------------------------------
+$ Launcher
+$ ---------------------------------------------------------
+launch_azimuth,280.
+launch_elevation,70.
+rail_length,5.
+
+$ ---------------------------------------------------------
+$ Wind
+$ ---------------------------------------------------------
+$  - Power Law model
+$ ---------------------------------------------------------
+wind_model,power
+wind_power_coeff,4.5
+wind_alt_ref,5.
+wind_speed,5.
+wind_azimuth,90.
+$ ---------------------------------------------------------
+$  - File Input
+$ ---------------------------------------------------------
+$ wind_model,original
+wind_file,example/wind.csv
+
+$ ---------------------------------------------------------
+$ Structure Geometry
+$ ---------------------------------------------------------
+diameter, 0.121
+length, 2.288
+
+$ ---------------------------------------------------------
+$ Mass
+$ ---------------------------------------------------------
+mass_dry, 7.4550
+mass_ox, 0.663825
+mass_fuel_bef, 0.38
+mass_fuel_aft, 0.295
+
+$ ---------------------------------------------------------
+$ Center of Gravity (C.G.)
+$ ---------------------------------------------------------
+lcg_dry, 1.122
+lcg_ox, 0.335
+lcg_fuel, 0.139
+l_tank_cap, 0.279
+
+$ ---------------------------------------------------------
+$ Center of Gravity (C.G.)
+$ ---------------------------------------------------------
+Ij_dry_pitch, 2.3
+Ij_dry_roll, 0.016
+
+$ ---------------------------------------------------------
+$ Center of Gravity (C.G.)
+$ ---------------------------------------------------------
+lcp, 0.727
+CA, 0.6
+CNa, 7.237
+Clp, -0.019
+Cmq, -2.588
+
+$ ---------------------------------------------------------
+$ Engine
+$ ---------------------------------------------------------
+thrust_file,example/thrust.csv
+
+$ ---------------------------------------------------------
+$ Parachute
+$ ---------------------------------------------------------
+vel_para_1st, 12.
+exist_2nd_para, True
+vel_para_2nd, 12.
+2nd_para_timer, False
+time_2nd, 1800.
+alt_para_2nd, 300.
+
 $ ----------------------------
 $ numerical parameters
 $ ----------------------------
-$ time step [s]
 dt,0.001
-$ max time for computation [s]
-t_max,500.
-
-$ ----------------------------
-$ wind parameters
-$ ----------------------------
-$ wind direction blowing from [deg]
-wind_azimuth,90.
-$ wind speed at wind_alt_std[m]
-wind_speed,5.
-$ wind power profile coefficient
-wind_power_coeff,4.5
-$ reference altitude where wind speed is defined [m]
-wind_alt_ref,5.
-$ wind model
-wind_model,power
-wind_file,example/wind.csv
-
-$ ----------------------------
-$ engine parameters
-$ ----------------------------
-$ thrust curve file
-thrust_file,example/thrust.csv
-$ burn time
-time_burn,3.6
+t_max,1000.
 
 $ ----------------------------
 $ parachute parameters
 $ ----------------------------
-vel_para_1st, 12.
-$ whether 2nd parachute is deployed or not
-second_para, True
-$ 2nd parachute deployment time from take-off
-t_deploy_2, 1800.
-$ drag coeff. of 2nd parachute
-Cd_para_2, 1.2
-$ net area of 2nd parachute [m^2]
-S_para_2, 3.39
-$ altitude where 2nd parachute is deployed
-alt_para_2, 300.
