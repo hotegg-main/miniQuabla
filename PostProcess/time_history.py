@@ -3,6 +3,8 @@ import quaternion
 from dynamics import *
 import matplotlib.pyplot as plt
 import os
+import pandas as pd
+from Parameter.parameter import Parameter
 
 # グラフの描画設定
 plt.rcParams['font.family'] = 'Arial'
@@ -22,14 +24,14 @@ color = ['#FF4B00',
          '#4DC4FF',
          '#F6AA00',]
 
-def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
+def calc_sub_values(path, time, pos, vel, quat, omega, mass, param: Parameter):
 
     quat_new    = quaternion.from_float_array(quat)
     dcm         = quaternion.as_rotation_matrix(quat_new)
     dcmT        = np.array([d.T for d in dcm])
-    euler = np.rad2deg(np.array([np.array([np.arctan2(d[0, 1], d[0, 0]), np.arcsin(-d[0, 2]), np.arctan2(d[1, 2], d[2, 2])]) for d in dcmT]))
+    euler       = np.rad2deg(np.array([np.array([np.arctan2(d[0, 1], d[0, 0]), np.arcsin(-d[0, 2]), np.arctan2(d[1, 2], d[2, 2])]) for d in dcmT]))
 
-    altitude = np.abs(pos[:, 2])
+    altitude            = np.abs(pos[:, 2])
     downrange           = np.array([np.linalg.norm(p[:2]) for p in pos])
     grav, rho, cs       = param.atmos.get_atmosphere(altitude)
     vel_NED             = np.array([d @ v for d, v in zip(dcm, vel)])
@@ -52,7 +54,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
     coeff_lp = param.aero.coeff_lp
     coeff_mq = param.aero.coeff_mq
     coeff_nr = param.aero.coeff_nr
-    Ij = param.geomet.get_Ij(time).T
+    Ij              = param.geomet.get_Ij(time).T
     area_ref        = param.geomet.area
     length_ref      = param.geomet.length
     diameter_ref    = param.geomet.diameter
@@ -61,6 +63,72 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
     moment_aero_damp    = np.array([calc_aero_damping_moment(dp, v, o, coeff_lp, coeff_mq, coeff_nr, area_ref, length_ref, diameter_ref) for dp, v, o in zip(dynamic_pressure, vel_air_abs, omega)])
     moment_gyro         = np.array([calc_gyro_moment(o, i) for o, i in zip(omega, Ij)])
     omega_dot           = calc_omega_dot(moment_aero, moment_aero_damp, moment_gyro, Ij)
+
+    ########################################
+    # to CSV
+    ########################################
+    pd.DataFrame({
+
+        'Time [sec]'                    : time,
+        'North [m]'                     : pos[:, 0],
+        'East [m]'                      : pos[:, 1],
+        'Dwon [m]'                      : pos[:, 2],
+        'Velocity_BODY-X [m/s]'         : vel[:, 0],
+        'Velocity_BODY-Y [m/s]'         : vel[:, 1],
+        'Velocity_BODY-Z [m/s]'         : vel[:, 2],
+        'Omega_BODY-X [rad/s]'          : omega[:, 0],
+        'Omega_BODY-Y [rad/s]'          : omega[:, 1],
+        'Omega_BODY-Z [rad/s]'          : omega[:, 2],
+        'Quaternion0'                   : quat[:, 0],
+        'Quaternion1'                   : quat[:, 1],
+        'Quaternion2'                   : quat[:, 2],
+        'Quaternion3'                   : quat[:, 3],
+        'Mass [kg]'                     : mass,
+        'Altitude [km]'                 : altitude  * 1.E-03,
+        'Downrange [km]'                : downrange * 1.E-03,
+        'Gravity [m/s2]'                : grav, 
+        'Air Density [kg/m3]'           : rho, 
+        'Sound Speed [m/s]'             : cs,
+        'Wind_NED-X [m/s]'              : wind_NED[:, 0],
+        'Wind_NED-Y [m/s]'              : wind_NED[:, 1],
+        'Wind_NED-Z [m/s]'              : wind_NED[:, 2],
+        'Air_Speed_BODY-X [m/s]'        : vel_air[:, 0],
+        'Air_Speed_BODY-Y [m/s]'        : vel_air[:, 1],
+        'Air_Speed_BODY-Z [m/s]'        : vel_air[:, 2],
+        'Air_Speed_Norm [m/s]'          : vel_air_abs,
+        'Angle of Attack [deg]'         : aoa[:, 0],
+        'Angle of Side-Slip [deg]'      : aoa[:, 1],
+        'Mach Numpber [-]'              : mach,
+        'Dynamic Pressure [kPa]'        : dynamic_pressure * 1.E-03,
+        'Axial Coefficient [-]'         : coeff_A,
+        'Slope of Normal Force [1/rad]' : coeff_Na,
+        'Axial Force [N]'               : - force_aero[:, 0],
+        'Side Force [N]'                : - force_aero[:, 1],
+        'Normal Force [N]'              : - force_aero[:, 2],
+        'Thrust [N]'                    : force_thrust[:, 0],
+        'Acceleration_BODY-X [m/s2]'    : acc_body[:, 0],
+        'Acceleration_BODY-Y [m/s2]'    : acc_body[:, 1],
+        'Acceleration_BODY-Z [m/s2]'    : acc_body[:, 2],
+        'Length-C.G. from End [m]'      : lcg,
+        'Length-C.P. from End [m]'      : lcp,
+        'Static Magin Fst [%]'          : Fst,
+        'Moment of Inertia-X [kg*m2]'   : Ij[:, 0],
+        'Moment of Inertia-Y [kg*m2]'   : Ij[:, 1],
+        'Moment of Inertia-Z [kg*m2]'   : Ij[:, 2],
+        'Aero Moment-X [Nm]'            : moment_aero[:, 0],
+        'Aero Moment-Y [Nm]'            : moment_aero[:, 1],
+        'Aero Moment-Z [Nm]'            : moment_aero[:, 2],
+        'Aero Damping Moment-X [Nm]'    : moment_aero_damp[:, 0],
+        'Aero Damping Moment-Y [Nm]'    : moment_aero_damp[:, 1],
+        'Aero Damping Moment-Z [Nm]'    : moment_aero_damp[:, 2],
+        'Gyro Moment-X [Nm]'            : moment_gyro[:, 0],
+        'Gyro Moment-Y [Nm]'            : moment_gyro[:, 1],
+        'Gyro Moment-Z [Nm]'            : moment_gyro[:, 2],
+        'Derivative of Omega-X [rad/s2]': omega_dot[:, 0],
+        'Derivative of Omega-Y [rad/s2]': omega_dot[:, 1],
+        'Derivative of Omega-Z [rad/s2]': omega_dot[:, 2],
+    
+    }).to_csv(path + os.sep + 'log.csv', index=False)
 
     ########################################
     # Summary
@@ -110,7 +178,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
         f.writelines(lines_summary)
 
     ########################################
-    # Plot
+    # Graph
     ########################################
     plot_euler(path, time, euler)                           # オイラー角
     plot_force_aero(path, time, force_aero)                 # 空気力
@@ -118,14 +186,14 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param):
     plot_vel_air(path, time, vel_air)                       # 対気速度
     plot_dynamic_pressure(path, time, dynamic_pressure)     # 動圧
     plot_aoa_aos(path, time, aoa)                           # 迎角、横滑り角
-    plot_mach(path, time, mach)                      # マッハ数
+    plot_mach(path, time, mach)                             # マッハ数
     plot_static_margin(path, time, Fst)                     # Fst
-    plot_atomosphere(path, time, grav, rho, cs)             # 
+    plot_atomosphere(path, time, grav, rho, cs)             # 重力加速度、大気密度、音速
     plot_CG_CP(path, time, lcg, lcp)                        # 重心、圧力中心
-    plot_coefficient_aero(path, time, coeff_A, coeff_Na)    # 
-    plot_moment_aero(path, time, moment_aero)               #
-    plot_moment_aero_damping(path, time, moment_aero_damp)  #
-    plot_moment_gyro(path, time, moment_gyro)               #
+    plot_coefficient_aero(path, time, coeff_A, coeff_Na)    # 安定微係数（空力係数）
+    plot_moment_aero(path, time, moment_aero)               # 空力モーメント
+    plot_moment_aero_damping(path, time, moment_aero_damp)  # 空力減衰モーメント
+    plot_moment_gyro(path, time, moment_gyro)               # ジャイロモーメント
     plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro)
     plot_omega_dot(path, time, omega_dot)
 
@@ -440,44 +508,51 @@ def plot_moment_gyro(path, time, moment):
 
 def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
 
-    plt.figure('Moment-X')
+    plt.figure('Moment')
+
+    plt.subplot(311)
     plt.plot(time, moment_aero[:, 0]        , color=color[0], label='Aero')
     plt.plot(time, moment_aero_damp[:, 0]   , color=color[1], label='Aero Damp.')
     plt.plot(time, moment_gyro[:, 0]        , color=color[2], label='Gyro')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
-    plt.ylabel('Moment [Nm]')
+    plt.ylabel('Moment-X [Nm]')
     plt.minorticks_on()
-    plt.legend()
+    plt.legend(bbox_to_anchor=(0.99, 1), loc='upper left', fontsize=10)
     plt.grid(linestyle='--')
-    plt.savefig(path + os.sep + 'Moment-X' + '.png')
-    plt.close()
+    # plt.savefig(path + os.sep + 'Moment-X' + '.png')
+    # plt.close()
     
-    plt.figure('Moment-Y')
+    plt.subplot(312)
+    # plt.figure('Moment-Y')
     plt.plot(time, moment_aero[:, 1]        , color=color[0], label='Aero')
     plt.plot(time, moment_aero_damp[:, 1]   , color=color[1], label='Aero Damp.')
     plt.plot(time, moment_gyro[:, 1]        , color=color[2], label='Gyro')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
-    plt.ylabel('Moment [Nm]')
+    plt.ylabel('Moment-Y [Nm]')
     plt.minorticks_on()
-    plt.legend()
+    plt.legend(bbox_to_anchor=(0.99, 1), loc='upper left', fontsize=10)
     plt.grid(linestyle='--')
-    plt.savefig(path + os.sep + 'Moment-Y' + '.png')
-    plt.close()
+    # plt.savefig(path + os.sep + 'Moment-Y' + '.png')
+    # plt.close()
     
-    plt.figure('Moment-Z')
+    plt.subplot(313)
+    # plt.figure('Moment-Z')
     plt.plot(time, moment_aero[:, 2]        , color=color[0], label='Aero')
     plt.plot(time, moment_aero_damp[:, 2]   , color=color[1], label='Aero Damp.')
     plt.plot(time, moment_gyro[:, 2]        , color=color[2], label='Gyro')
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
-    plt.ylabel('Moment [Nm]')
+    plt.ylabel('Moment-Z [Nm]')
     plt.minorticks_on()
-    plt.legend()
+    plt.legend(bbox_to_anchor=(0.99, 1), loc='upper left', fontsize=10)
     plt.grid(linestyle='--')
-    plt.savefig(path + os.sep + 'Moment-Z' + '.png')
-    plt.close()
+    # plt.savefig(path + os.sep + 'Moment-Z' + '.png')
+    # plt.close()
+
+    plt.subplots_adjust(right=0.8)
+    plt.savefig(path + os.sep + 'Moment' + '.png')
 
 def plot_omega_dot(path, time, omega_dot):
 
