@@ -20,17 +20,15 @@ def dynamics_trajectory(time, x, param:Parameter):
     mass    = x[13]
     
     # DCM_BODY->NED
-    # dcm = calc_DCM_NED2BODY(x[6:10]).T
     dcm = quaternion.as_rotation_matrix(quat)
     altitude = np.max([1.e-03, - pos[2]])
-    # altitude = np.abs(pos[2])
     
     area_ref        = param.geomet.area
     length_ref      = param.geomet.length
     diameter_ref    = param.geomet.diameter
-    mdot = param.engine.get_mass_flow_rate(time)
-    lcg         = param.geomet.get_Lcg(time)
-    Ij          = param.geomet.get_Ij(time)
+    mdot            = param.engine.get_mass_flow_rate(time)
+    lcg             = param.geomet.get_Lcg(time)
+    Ij              = param.geomet.get_Ij(time)
     
     g, rho, cs  = param.atmos.get_atmosphere(altitude)
     wind_NED    = param.wind.get_wind_NED(altitude)
@@ -75,12 +73,12 @@ def dynamics_trajectory(time, x, param:Parameter):
         omega_dot = np.zeros(3)
         quat_dot = np.zeros(4)
 
-    dxdt = np.zeros(14)
-    dxdt[0:3]     = vel_NED
-    dxdt[3:6]     = acc_body
-    dxdt[6:10]    = quat_dot
-    dxdt[10:13]   = omega_dot
-    dxdt[13]      = mdot
+    dxdt        = np.zeros(14)
+    dxdt[0:3]   = vel_NED
+    dxdt[3:6]   = acc_body
+    dxdt[6:10]  = quat_dot
+    dxdt[10:13] = omega_dot
+    dxdt[13]    = mdot
 
     return dxdt
 
@@ -110,20 +108,6 @@ def dynamics_parachute(time, x, param:Parameter):
 #####################################################################
 # Subroutine 
 #####################################################################
-def calc_DCM_NED2BODY(quat):
-
-    q0 = quat[0]
-    q1 = quat[1]
-    q2 = quat[2]
-    q3 = quat[3]
-    
-    return np.array([
-        [q0*q0 + q1*q1 - q2*q2 - q3*q3, 2.*(q1*q2 + q0*q3)           , 2.*(q1*q3 - q0*q2)           ], 
-        [2.*(q1*q2 - q0*q3)           , q0*q0 - q1*q1 + q2*q2 - q3*q3, 2.*(q2*q3 + q0*q1)           ], 
-        [2.*(q1*q3 + q0*q2)           , 2.*(q2*q3 - q0*q1)           , q0*q0 - q1*q1 - q2*q2 + q3*q3]
-    ])
-    
-
 def calc_air_speed(vel: np.ndarray, wind: np.ndarray):
     '''対気速度計算'''
 
@@ -139,7 +123,6 @@ def calc_angle_of_attack(vel_air:np.ndarray):
     beta  = 0.
 
     if norm > 0.:
-        # alpha = np.arcsin(vel_air[2] / norm)
         alpha = np.arctan2(vel_air[2], vel_air[0])
         beta  = np.arcsin(vel_air[1] / norm)
 
@@ -169,11 +152,6 @@ def calc_aero_force(dynamic_pressure, alpha, beta, coeff_axial, coeff_normal, ar
                 beta,
                 alpha
             ])
-    # axial  = dynamic_pressure * coeff_axial  * area_ref
-    # normal = dynamic_pressure * coeff_normal * area_ref * alpha
-    # side   = dynamic_pressure * coeff_normal * area_ref * beta
-    
-    # return np.array([- axial, - side, - normal])
 
 def calc_acceleration(force_aero, force_thrust, force_gravity, mass, vel, omega):
 
