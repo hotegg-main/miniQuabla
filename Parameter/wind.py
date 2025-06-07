@@ -1,6 +1,7 @@
 import numpy as np
+from scipy.interpolate import interp1d
 
-MODEL_POWER     = 'powewr'
+MODEL_POWER     = 'power'
 MODEL_ORIGINAL  = 'original'
 
 class Wind:
@@ -12,17 +13,26 @@ class Wind:
         self.azimuth_ref    = np.deg2rad(config['azimuth'])
         self.exponent       = config['power_coeff']
         self.altitude_ref   = config['altitude']
-        self.mag_dec        = 0.
+
+        if self.model == MODEL_POWER:
+            alt_array       = np.linspace(0.0, 30.e+03, 3000)
+            speed_array     = np.array([self.__power_law(alt) for alt in alt_array])
+            azimuth_array   = np.array([self.azimuth_ref]*len(alt_array))
         
-        self.path_file = ''
-        if self.model == MODEL_ORIGINAL:
-            self.path_file = config['file']
+        elif self.model == MODEL_ORIGINAL:
+            path = config['file']
+            data_wind = np.loadtxt(path, delimiter=',', skiprows=1, usecols=(0, 1, 2))
+            alt_array       = data_wind[:, 0]
+            speed_array     = data_wind[:, 1]
+            azimuth_array   = np.deg2rad(data_wind[:, 2])
+            
+        self.get_speed      = interp1d(alt_array, speed_array, kind='linear', bounds_error=False, fill_value=(speed_array[0], speed_array[-1]))
+        self.get_azimuth    = interp1d(alt_array, azimuth_array, kind='linear', bounds_error=False, fill_value=(azimuth_array[0], azimuth_array[-1]))
 
     def get_wind_NED(self, altitude):
         
-        speed = self.__power_law(altitude)
-        azimuth = self.azimuth_ref 
-        azimuth -= self.mag_dec
+        speed   = self.get_speed(altitude)
+        azimuth = self.get_azimuth(altitude)
 
         return - speed * np.array([np.cos(azimuth), np.sin(azimuth), 0.])
 

@@ -28,5 +28,5 @@ if __name__=='__main__':
     #    run_single() --> 速度、位置などの時間履歴を見る
     #    run_loop()   --> 落下分散図を計算する
     #################################################################
-    # run_single(path_config, path_result)
-    run_loop(path_config, path_result, cond)
+    run_single(path_config, path_result)
+    # run_loop(path_config, path_result, cond)

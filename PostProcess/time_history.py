@@ -140,7 +140,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param: Parameter):
     index_max_Q         = calc_max_Q(dynamic_pressure)
     index_max_mach      = calc_max_mach(mach)
 
-    aoa[:index_launch_clear] = 0.
+    aoa[:index_launch_clear, 0] = 0.
     acc_body[:index_launch_clear, 1:3] = 0.
 
     lines_summary = [
@@ -313,6 +313,7 @@ def plot_euler(path, time, euler):
     plt.plot(time, euler[:, 1], color=color[1], label='Elevation')
     plt.plot(time, euler[:, 2], color=color[2], label='Roll')
     plt.xlim(left=0., right=time[-1])
+    plt.ylim(bottom=-180., top=180.)
     plt.xlabel('Time [sec]')
     plt.ylabel('Angle [deg]')
     plt.legend()
@@ -520,11 +521,8 @@ def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
     plt.minorticks_on()
     plt.legend(bbox_to_anchor=(0.99, 1), loc='upper left', fontsize=10)
     plt.grid(linestyle='--')
-    # plt.savefig(path + os.sep + 'Moment-X' + '.png')
-    # plt.close()
     
     plt.subplot(312)
-    # plt.figure('Moment-Y')
     plt.plot(time, moment_aero[:, 1]        , color=color[0], label='Aero')
     plt.plot(time, moment_aero_damp[:, 1]   , color=color[1], label='Aero Damp.')
     plt.plot(time, moment_gyro[:, 1]        , color=color[2], label='Gyro')
@@ -534,11 +532,8 @@ def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
     plt.minorticks_on()
     plt.legend(bbox_to_anchor=(0.99, 1), loc='upper left', fontsize=10)
     plt.grid(linestyle='--')
-    # plt.savefig(path + os.sep + 'Moment-Y' + '.png')
-    # plt.close()
     
     plt.subplot(313)
-    # plt.figure('Moment-Z')
     plt.plot(time, moment_aero[:, 2]        , color=color[0], label='Aero')
     plt.plot(time, moment_aero_damp[:, 2]   , color=color[1], label='Aero Damp.')
     plt.plot(time, moment_gyro[:, 2]        , color=color[2], label='Gyro')
@@ -548,8 +543,6 @@ def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
     plt.minorticks_on()
     plt.legend(bbox_to_anchor=(0.99, 1), loc='upper left', fontsize=10)
     plt.grid(linestyle='--')
-    # plt.savefig(path + os.sep + 'Moment-Z' + '.png')
-    # plt.close()
 
     plt.subplots_adjust(right=0.8)
     plt.savefig(path + os.sep + 'Moment' + '.png')
