@@ -5,3 +5,4 @@ numpy-quaternion
 ussa1976
 tqdm
 simplekml
+setuptools

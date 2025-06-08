@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import quaternion
+from setuptools._distutils.util import strtobool
 
 class Parameter:
 
@@ -66,11 +67,17 @@ class Parameter:
         config_dst['Engine']['thrust_file']     = config_src['thrust_file']
         # config_dst['Engine']['time_burn']       = float(config_src['time_burn'])
         
-        config_dst['Aerodynamics']['lcp']   = float(config_src['lcp'])
-        config_dst['Aerodynamics']['CA']    = float(config_src['CA'])
-        config_dst['Aerodynamics']['CNa']   = float(config_src['CNa'])
-        config_dst['Aerodynamics']['Clp']   = float(config_src['Clp'])
-        config_dst['Aerodynamics']['Cmq']   = float(config_src['Cmq'])
+        config_dst['Aerodynamics']['lcp']               = float(config_src['lcp'])
+        config_dst['Aerodynamics']['CA']                = float(config_src['CA'])
+        config_dst['Aerodynamics']['CNa']               = float(config_src['CNa'])
+        config_dst['Aerodynamics']['Clp']               = float(config_src['Clp'])
+        config_dst['Aerodynamics']['Cmq']               = float(config_src['Cmq'])
+        config_dst['Aerodynamics']['exsist_lcp_file']   = strtobool(config_src['exsist_lcp_file'])
+        config_dst['Aerodynamics']['exsist_CA_file']    = strtobool(config_src['exsist_CA_file'])
+        config_dst['Aerodynamics']['exsist_CNa_file']   = strtobool(config_src['exsist_CNa_file'])
+        config_dst['Aerodynamics']['lcp_file']          = str(config_src['lcp_file'])
+        config_dst['Aerodynamics']['CA_file']           = str(config_src['CA_file'])
+        config_dst['Aerodynamics']['CNa_file']          = str(config_src['CNa_file'])
         
         config_dst['Wind']['model']         = config_src['wind_model']
         config_dst['Wind']['speed']         = float(config_src['wind_speed'])

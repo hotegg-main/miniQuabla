@@ -568,7 +568,7 @@ def plot_coefficient_aero(path, time, coeff_A, coeff_Na):
     ax1.set_title('Coefficient_Aero')
     ax2 = ax1.twinx()
     ax1.plot(time, coeff_A , color=color[0], label='$C_D$')
-    ax1.plot(time, coeff_A , color=color[0], label='$C_{Na}$')
+    ax1.plot(time, coeff_A , color=color[1], label='$C_{Na}$')
     ax2.plot(time, coeff_Na, color=color[1], label='$C_{Na}$')
     ax1.set_xlabel('Time [sec]')
     ax1.set_ylabel('Drag Coefficient [-]')
