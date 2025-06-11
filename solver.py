@@ -21,7 +21,7 @@ def run_single(path_config, path_result):
     plot_main_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param)
     elp.append(time.time())
     
-    calc_sub_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, param)
+    calc_sub_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param)
     elp.append(time.time())
     
     # 経過時間
@@ -51,7 +51,7 @@ def run_loop(path_config, path_result, cond):
     azimuth_end  = azimuth_step * row + azimuth_sta
 
     speed_array   = np.linspace(speed_sta, speed_sta + col*speed_step, col+1)
-    azimuth_array = np.deg2rad(np.linspace(azimuth_sta, azimuth_end, row+1))
+    azimuth_array = np.linspace(azimuth_sta, azimuth_end, row+1)
     
     elp = []
     elp.append(time.time())
@@ -155,11 +155,10 @@ def solve_dynamics_for_loop(path, job, result):
     ジョブリスト：
     番号、風向、風速
     '''
+    from Parameter.wind import MODEL_POWER
+
     param = Parameter(path)
-    param.wind.speed_ref    = job['Wind Speed']
-    param.wind.azimuth_ref  = job['Wind Azimuth']
-    # i = job['Column']
-    # j = job['Row']
+    param.wind.set_power_model(job['Wind Speed'], job['Wind Azimuth'])
 
     _, pos_log, _, _, _, _, _, pos_log_para = \
         solve_dynamics(param)
@@ -178,28 +177,6 @@ def check_apogee(time_log, pos_log):
     pos_apogee  = pos_log[index]
 
     return index, time_apogee, pos_apogee
-
-# def __debug():
-
-#     from PostProcess.time_history import calc_sub_values
-#     from PostProcess.time_history import plot_main_values
-#     import time
-
-#     param = Parameter('example/rocket_config.csv')
-#     path_result = 'test'
-    
-#     elp = []
-#     elp.append(time.time())
-#     time_log, pos_log, vel_log, quat_log, omega_log, mass_log, pos_log_para \
-#         = solve_dynamics(param)
-#     elp.append(time.time())
-#     plot_main_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, param)
-#     elp.append(time.time())
-#     calc_sub_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, param)
-#     elp.append(time.time())
-#     print('Solve ODE :', elp[1] - elp[0])
-#     print('Plot      :', elp[2] - elp[1])
-#     print('Calc Other:', elp[3] - elp[2])
 
 if __name__=='__main__':
 

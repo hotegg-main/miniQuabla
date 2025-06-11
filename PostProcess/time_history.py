@@ -24,7 +24,7 @@ color = ['#FF4B00',
          '#4DC4FF',
          '#F6AA00',]
 
-def calc_sub_values(path, time, pos, vel, quat, omega, mass, param: Parameter):
+def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para, param: Parameter):
 
     quat_new    = quaternion.from_float_array(quat)
     dcm         = quaternion.as_rotation_matrix(quat_new)
@@ -63,6 +63,10 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param: Parameter):
     moment_aero_damp    = np.array([calc_aero_damping_moment(dp, v, o, coeff_lp, coeff_mq, coeff_nr, area_ref, length_ref, diameter_ref) for dp, v, o in zip(dynamic_pressure, vel_air_abs, omega)])
     moment_gyro         = np.array([calc_gyro_moment(o, i) for o, i in zip(omega, Ij)])
     omega_dot           = calc_omega_dot(moment_aero, moment_aero_damp, moment_gyro, Ij)
+
+    altitude_para   = np.abs(pos_para[:, 2])
+    downrange_para  = np.array([np.linalg.norm(p[:2]) for p in pos_para])
+    vel_descent     = np.array([param.para.get_velocity(t, alt) for t, alt in zip(time_para, altitude_para)])
 
     ########################################
     # to CSV
@@ -172,6 +176,10 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param: Parameter):
         'Landing(Hard), Time [sec]        : ', str(round(time[-1], 3)), '\n'
         'Landing(Hard), Downrange [km]    : ', str(round(downrange[-1] * 1.e-03, 3)), '\n'
         'Landing(Hard), East, North [m, m]: ', str(round(pos[-1, 1], 3)), ', ', str(round(pos[-1, 0], 3)), '\n'
+        '\n',
+        'Landing(Soft), Time [sec]        : ', str(round(time_para[-1], 3)), '\n'
+        'Landing(Soft), Downrange [km]    : ', str(round(downrange_para[-1] * 1.e-03, 3)), '\n'
+        'Landing(Soft), East, North [m, m]: ', str(round(pos_para[-1, 1], 3)), ', ', str(round(pos_para[-1, 0], 3)), '\n'
     ]
 
     with open(path + os.sep + 'summary.txt', mode='w', encoding='utf-8') as f:
@@ -196,6 +204,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, param: Parameter):
     plot_moment_gyro(path, time, moment_gyro)               # ジャイロモーメント
     plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro)
     plot_omega_dot(path, time, omega_dot)
+    plot_vel_descent(path, time_para, vel_descent)
 
 def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para, param):
 
@@ -580,6 +589,19 @@ def plot_coefficient_aero(path, time, coeff_A, coeff_Na):
     ax1.legend()
     fig.savefig(path + os.sep + 'Coefficient_Aero' + '.png')
     plt.close()
+
+def plot_vel_descent(path, time, vel):
+
+    plt.figure('Static_Margin')
+    plt.plot(time, vel, color=color[0])
+    plt.xlim(left=time[0], right=time[-1])
+    plt.xlabel('Time [sec]')
+    plt.ylabel('Velocity [m/s]')
+    plt.minorticks_on()
+    plt.grid(linestyle='--')
+    plt.savefig(path + os.sep + 'Velocity_descent' + '.png')
+    plt.close()
+
 
 def calc_max_min_Fst(fst):
 

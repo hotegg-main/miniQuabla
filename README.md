@@ -30,7 +30,7 @@ $ python -m pip install -r requirements.txt
 
 # Future Work
 <!-- * 磁気偏角 -->
-* 2段分離
+<!-- * 2段分離 -->
 * ペイロード
 <!-- * 空力パラメータのマッハ数補間 -->
 * 結果出力用のフォルダ作成

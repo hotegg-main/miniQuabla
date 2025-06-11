@@ -98,7 +98,8 @@ def dynamics_parachute(time, x, param:Parameter):
     wind_NED = param.wind.get_wind_NED(altitude)
     vel_NED = np.zeros(3)
     vel_NED[0:2] = wind_NED[0:2]
-    vel_NED[2] = param.para.vel_para_1st
+    # vel_NED[2] = param.para.vel_para_1st
+    vel_NED[2] = param.para.get_velocity(time, altitude)
 
     dxdt = np.zeros(3)
     dxdt[0:3] = vel_NED

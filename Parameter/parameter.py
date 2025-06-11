@@ -97,7 +97,12 @@ class Parameter:
         config_dst['Solver']['dt']      = float(config_src['dt'])
         config_dst['Solver']['t_max']   = float(config_src['t_max'])
 
-        config_dst['Parachute']['vel_para_1st'] = float(config_src['vel_para_1st'])
+        config_dst['Parachute']['vel_para_1st']     = float(config_src['vel_para_1st'])
+        config_dst['Parachute']['exist_2nd_para']   = strtobool(config_src['exist_2nd_para'])
+        config_dst['Parachute']['2nd_para_timer']   = strtobool(config_src['2nd_para_timer'])
+        config_dst['Parachute']['vel_para_2nd']     = float(config_src['vel_para_2nd'])
+        config_dst['Parachute']['alt_para_2nd']     = float(config_src['alt_para_2nd'])
+        config_dst['Parachute']['time_2nd']         = float(config_src['time_2nd'])
 
         return config_dst
     

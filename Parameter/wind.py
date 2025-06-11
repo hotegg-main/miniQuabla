@@ -29,6 +29,20 @@ class Wind:
         self.get_speed      = interp1d(alt_array, speed_array, kind='linear', bounds_error=False, fill_value=(speed_array[0], speed_array[-1]))
         self.get_azimuth    = interp1d(alt_array, azimuth_array, kind='linear', bounds_error=False, fill_value=(azimuth_array[0], azimuth_array[-1]))
 
+    def set_power_model(self, speed_ref, azimuth_ref):
+
+        self.model          = MODEL_POWER
+        self.speed_ref      = speed_ref
+        self.azimuth_ref    = np.deg2rad(azimuth_ref)
+
+        alt_array       = np.linspace(0.0, 30.e+03, 3000)
+        speed_array     = np.array([self.__power_law(alt) for alt in alt_array])
+        azimuth_array   = np.array([self.azimuth_ref]*len(alt_array))
+        
+        self.get_speed      = interp1d(alt_array, speed_array, kind='linear', bounds_error=False, fill_value=(speed_array[0], speed_array[-1]))
+        self.get_azimuth    = interp1d(alt_array, azimuth_array, kind='linear', bounds_error=False, fill_value=(azimuth_array[0], azimuth_array[-1]))
+
+
     def get_wind_NED(self, altitude):
         
         speed   = self.get_speed(altitude)
