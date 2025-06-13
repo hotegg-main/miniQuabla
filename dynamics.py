@@ -28,6 +28,7 @@ def dynamics_trajectory(time, x, param:Parameter):
     diameter_ref    = param.geomet.diameter
     mdot            = param.engine.get_mass_flow_rate(time)
     lcg             = param.geomet.get_Lcg(time)
+    # lcg             = param.geomet.get_Lcg(mass, param.engine.get_lcg_prop(time))
     Ij              = param.geomet.get_Ij(time)
     
     g, rho, cs  = param.atmos.get_atmosphere(altitude)
@@ -63,15 +64,15 @@ def dynamics_trajectory(time, x, param:Parameter):
     omega_dot   = calc_omega_dot(moment_aero, moment_aero_damp, moment_gyro, Ij)
     quat_dot    = calc_quat_dot(omega, quat)
 
-    if not is_launch_clear(time, pos, dcm, param):
+    if not is_launch_clear(time, pos, dcm, lcg, param):
 
         if acc_body[0] < 0. and vel[0] < 0.:
             acc_body[0:3] = 0.
 
-        acc_body[1:3] = 0.
-        vel[1:3] = 0.
-        omega_dot = np.zeros(3)
-        quat_dot = np.zeros(4)
+        acc_body[1:3]   = 0.
+        vel[1:3]        = 0.
+        omega_dot       = np.zeros(3)
+        quat_dot        = np.zeros(4)
 
     dxdt        = np.zeros(14)
     dxdt[0:3]   = vel_NED
@@ -93,13 +94,13 @@ def dynamics_parachute(time, x, param:Parameter):
         mass    :質量
     '''
     
-    pos     = x[0:3]
-    altitude = np.abs(pos[2])
-    wind_NED = param.wind.get_wind_NED(altitude)
-    vel_NED = np.zeros(3)
-    vel_NED[0:2] = wind_NED[0:2]
-    # vel_NED[2] = param.para.vel_para_1st
-    vel_NED[2] = param.para.get_velocity(time, altitude)
+    pos = x[0:3]
+    
+    altitude        = np.abs(pos[2])
+    wind_NED        = param.wind.get_wind_NED(altitude)
+    vel_NED         = np.zeros(3)
+    vel_NED[0:2]    = wind_NED[0:2]
+    vel_NED[2]      = param.para.get_velocity(time, altitude)
 
     dxdt = np.zeros(3)
     dxdt[0:3] = vel_NED
@@ -214,11 +215,11 @@ def calc_quat_dot(omega, quat):
 
     return 0.5 * tensor @ quaternion.as_float_array(quat)
 
-def is_launch_clear(time, pos, dcm, param: Parameter):
+def is_launch_clear(time, pos, dcm, lcg, param: Parameter):
 
     l_launcher = param.launch.length
     time_act   = param.engine.time_act
-    distance = (dcm.T @ pos)[0] - param.geomet.get_Lcg(time)
+    distance = (dcm.T @ pos)[0] - lcg
 
     if distance <  l_launcher and time < time_act:
         return False

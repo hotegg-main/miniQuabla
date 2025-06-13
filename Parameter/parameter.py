@@ -111,20 +111,17 @@ class Parameter:
         vel = np.zeros(3)
         omega = np.zeros(3)
         
-        elev = np.deg2rad(self.launch.elevation)
-        azim = np.deg2rad(self.launch.azimuth)
-        roll = 0.
-        # dcm = np.array([
-        #     [np.cos(azim) * np.cos(elev), np.sin(azim) * np.cos(elev), -np.sin(elev)],
-        #     [-np.sin(azim) * np.cos(roll) + np.cos(azim) * np.sin(elev) * np.sin(roll), np.cos(azim) * np.cos(roll) + np.sin(azim) * np.sin(elev) * np.sin(roll), np.cos(elev) * np.sin(roll)],
-        #     [np.sin(azim) * np.sin(roll) + np.cos(azim) * np.sin(elev) * np.cos(roll), -np.cos(azim) * np.sin(roll) + np.sin(azim) * np.sin(elev) * np.cos(roll), np.cos(elev) * np.cos(roll)]
-        # ]).T
-        quat = quaternion.from_euler_angles(np.array([azim, elev, roll])).normalized()
-        dcm = quaternion.as_rotation_matrix(quat)
-        quat = quaternion.from_rotation_matrix(dcm)
-        pos = dcm @ np.array([self.geomet.get_Lcg(0.), 0., 0.])
+        elev    = np.deg2rad(self.launch.elevation)
+        azim    = np.deg2rad(self.launch.azimuth)
+        roll    = 0.
+        quat    = quaternion.from_euler_angles(np.array([azim, elev, roll])).normalized()
+        dcm     = quaternion.as_rotation_matrix(quat)
+        quat    = quaternion.from_rotation_matrix(dcm)
+        mass    = self.geomet.mass_bef
+        # pos     = dcm @ np.array([self.geomet.get_Lcg(mass, self.engine.get_lcg_prop(0.)), 0., 0.])
+        pos     = dcm @ np.array([self.geomet.get_Lcg(0.), 0., 0.])
 
-        return pos, vel, quat, omega, self.geomet.mass_bef
+        return pos, vel, quat, omega, mass
     
 def __deb_plot(time, lcg, thrust):
 

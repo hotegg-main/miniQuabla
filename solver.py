@@ -155,7 +155,6 @@ def solve_dynamics_for_loop(path, job, result):
     ジョブリスト：
     番号、風向、風速
     '''
-    from Parameter.wind import MODEL_POWER
 
     param = Parameter(path)
     param.wind.set_power_model(job['Wind Speed'], job['Wind Azimuth'])

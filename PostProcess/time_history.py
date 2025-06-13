@@ -48,6 +48,8 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     force_gravity       = ([d.T @ (m * np.array([0., 0., g])) for d, m, g in zip(dcm, mass, grav)])
     acc_body            = calc_acceleration(force_aero, force_thrust, force_gravity, np.array([mass, mass, mass]).T, vel, omega)
     lcg                 = param.geomet.get_Lcg(time)
+    # lcg_prop            = param.engine.get_lcg_prop(time)
+    # lcg                 = [param.geomet.get_Lcg(m, l) for m, l in zip(mass, lcg_prop)]
     lcp                 = param.aero.get_Lcp(mach)
     Fst                 = (lcg - lcp) / param.geomet.length * 100.
 
@@ -197,14 +199,16 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     plot_mach(path, time, mach)                             # マッハ数
     plot_static_margin(path, time, Fst)                     # Fst
     plot_atomosphere(path, time, grav, rho, cs)             # 重力加速度、大気密度、音速
+    # plot_CG_CP(path, time, lcg, lcg_prop, lcp)              # 重心、圧力中心
     plot_CG_CP(path, time, lcg, lcp)                        # 重心、圧力中心
     plot_coefficient_aero(path, time, coeff_A, coeff_Na)    # 安定微係数（空力係数）
+    plot_moment_of_inertia(path, time, Ij)                  # 慣性モーメント
     plot_moment_aero(path, time, moment_aero)               # 空力モーメント
     plot_moment_aero_damping(path, time, moment_aero_damp)  # 空力減衰モーメント
     plot_moment_gyro(path, time, moment_gyro)               # ジャイロモーメント
     plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro)
-    plot_omega_dot(path, time, omega_dot)
-    plot_vel_descent(path, time_para, vel_descent)
+    plot_omega_dot(path, time, omega_dot)                   # 角加速度
+    plot_vel_descent(path, time_para, vel_descent)          # 降下速度
 
 def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para, param):
 
@@ -418,8 +422,9 @@ def plot_mach(path, time, mach):
 def plot_CG_CP(path, time, lcg, lcp):
 
     plt.figure('CG_CP')
-    plt.plot(time, lcg, label='C.G.', color=color[0])
-    plt.plot(time, lcp, label='C.P.', color=color[1])
+    plt.plot(time, lcg      , label='C.G.', color=color[0])
+    plt.plot(time, lcp      , label='C.P.', color=color[1])
+    # plt.plot(time, lcg_prop , label='C.G. (Prop.)', color=color[2])
     plt.xlim(left=0., right=time[-1])
     plt.xlabel('Time [sec]')
     plt.ylabel('Length from End [m]')
@@ -555,6 +560,30 @@ def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
 
     plt.subplots_adjust(right=0.8)
     plt.savefig(path + os.sep + 'Moment' + '.png')
+
+def plot_moment_of_inertia(path, time, moi):
+
+    plt.figure('Moment')
+
+    plt.subplot(211)
+    plt.plot(time, moi[:, 1], color=color[0], label='Pitch')
+    plt.plot(time, moi[:, 2], color=color[1], label='Yaw')
+    plt.xlim(left=0., right=time[-1])
+    plt.ylabel('Moment of Inertia [$kg m^2$]')
+    plt.minorticks_on()
+    plt.legend()
+    plt.grid(linestyle='--')
+    
+    plt.subplot(212)
+    plt.plot(time, moi[:, 0], color=color[2], label='Roll')
+    plt.xlim(left=0., right=time[-1])
+    plt.xlabel('Time [sec]')
+    plt.ylabel('Moment of Inertia [$kg m^2$]')
+    plt.minorticks_on()
+    plt.legend()
+    plt.grid(linestyle='--')
+    
+    plt.savefig(path + os.sep + 'Moment_of_Inertia' + '.png')
 
 def plot_omega_dot(path, time, omega_dot):
 

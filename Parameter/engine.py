@@ -15,6 +15,7 @@ class Engine:
         self.lcg_ox         = config['lcg_ox']
         self.lcg_fuel       = config['lcg_fuel']
         l_tank_cap          = config['l_tank_cap']
+        self.l_fuel         = l_tank_cap
         # self.time_burn      = config['time_burn']
         self.delta_fuel = self.mass_fuel_bef - self.mass_fuel_aft
         
@@ -39,6 +40,12 @@ class Engine:
         # mdot_prop_log[:] = mdot_prop_const
         
         self.get_mass_flow_rate = interp1d(time_array, mdot_prop_log, kind='linear', bounds_error=False, fill_value=(0., 0.))
+
+        # lcg_prop_bef = self.mass_ox * self.lcg_ox + self.delta_fuel * self.lcg_fuel
+        # lcg_prop_bef /= self.mass_ox + self.delta_fuel
+        # # lcg_prop_aft = 0.
+        # lcg_prop_log = np.array([lcg_prop_bef * (1. -  (time / self.time_act)) for time in time_array])
+        # self.get_lcg_prop = interp1d(time_array, lcg_prop_log, kind='linear', bounds_error=False, fill_value=(lcg_prop_log[0], lcg_prop_log[-1]))
 
     def __get_total_impulse(self, time, thrust):
 
