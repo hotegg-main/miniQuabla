@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 from Parameter.parameter import Parameter
+import simplekml
 
 # グラフの描画設定
 plt.rcParams['font.family'] = 'Arial'
@@ -209,6 +210,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro)
     plot_omega_dot(path, time, omega_dot)                   # 角加速度
     plot_vel_descent(path, time_para, vel_descent)          # 降下速度
+    plot_kml(path, param.launch.LLH, param.launch.mag_dec, pos, pos_para)
 
 def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para, param):
 
@@ -631,6 +633,35 @@ def plot_vel_descent(path, time, vel):
     plt.savefig(path + os.sep + 'Velocity_descent' + '.png')
     plt.close()
 
+def plot_kml(path, launch_LLH, mag_dec, pos_hard, pos_soft):
+    
+    from PostProcess.coordinate import NED2LLHforKml
+    
+    llh_hard = [NED2LLHforKml(launch_LLH, pos, mag_dec) for pos in pos_hard]
+    llh_soft = [NED2LLHforKml(launch_LLH, pos, mag_dec) for pos in pos_soft]
+    
+    kml = simplekml.Kml(open=1)
+    
+    __make_kml_linestring(kml, llh_hard, 'Trajectory', simplekml.Color.crimson)
+    __make_kml_linestring(kml, llh_soft, 'Parachute' , simplekml.Color.turquoise)
+    
+    kml.save(path + os.sep + 'flight_log' + '.kml')
+
+def __make_kml_linestring(kml, llh, name, color):
+
+    line = kml.newlinestring(name=name)
+    line.style.linestyle.width = 5
+    line.style.linestyle.color = color
+    line.extrude = 1
+    line.altitudemode = simplekml.AltitudeMode.absolute
+    
+    coords = []
+    i = 0
+    for p in llh:
+        if i%10 == 0:
+            coords.append(p)
+        i = i+1
+    line.coords = coords
 
 def calc_max_min_Fst(fst):
 

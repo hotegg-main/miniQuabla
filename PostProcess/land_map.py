@@ -4,6 +4,7 @@
 import os
 import matplotlib.cm as cm
 import numpy as np
+import simplekml
 
 def plot_kml(path, launch_LLH, mag_dec, pos_hard, pos_soft, wind_array):
 
@@ -16,50 +17,34 @@ def plot_kml(path, launch_LLH, mag_dec, pos_hard, pos_soft, wind_array):
     llh_Kml_soft = np.zeros((col, row, 3))
 
     for i in range(col):
-        for j in range(row):    
+        for j in range(row):
             llh_hard[i][j] = NED2LLH(launch_LLH, pos_hard[i][j], mag_dec)
             llh_soft[i][j] = NED2LLH(launch_LLH, pos_soft[i][j], mag_dec)
             
             llh_Kml_hard[i][j] = NED2LLHforKml(launch_LLH, pos_hard[i][j], mag_dec)
             llh_Kml_soft[i][j] = NED2LLHforKml(launch_LLH, pos_soft[i][j], mag_dec)
     
-    __output_kml(path, llh_Kml_hard, llh_Kml_soft, wind_array, cm.cool)
+    __output_kml(path, llh_Kml_hard, llh_Kml_soft, wind_array)
 
-def __output_kml(path, hard_LLH, soft_LLH, wind_array, color_cm):
-    import simplekml
+def __output_kml(path, hard_LLH, soft_LLH, wind_array):
     
     kml = simplekml.Kml()
-    
-    i = 0
-    col = len(hard_LLH)
-    for hard in hard_LLH:
-        
-        linestring = kml.newlinestring(name=str(wind_array[i]) + 'm/s, Trajectory')
-        r = int(color_cm( i / col )[0] * 255)
-        g = int(color_cm( i / col )[1] * 255)
-        b = int(color_cm( i / col )[2] * 255)
-        # linestring.style.linestyle.color = simplekml.Color.rgb(r, g, b)
-        linestring.style.linestyle.color = simplekml.Color.orange
-        linestring.style.linestyle.width = 2
-        linestring.altitudemode = simplekml.AltitudeMode.relativetoground
-        linestring.coords = hard
-        i += 1
-    
-    i = 0
-    for hard in soft_LLH:
-        
-        linestring = kml.newlinestring(name=str(wind_array[i]) + 'm/s, Parachute')
-        r = int(color_cm( i / col )[0] * 255)
-        g = int(color_cm( i / col )[1] * 255)
-        b = int(color_cm( i / col )[2] * 255)
-        # linestring.style.linestyle.color = simplekml.Color.rgb(r, g, b)
-        linestring.style.linestyle.color = simplekml.Color.aqua
-        linestring.style.linestyle.width = 2
-        linestring.altitudemode = simplekml.AltitudeMode.relativetoground
-        linestring.coords = hard
-        i += 1
+
+    __make_kml_linestring(kml, hard_LLH, wind_array, 'Trajectory', simplekml.Color.orange)
+    __make_kml_linestring(kml, soft_LLH, wind_array, 'Parachute' , simplekml.Color.aqua)
 
     kml.save(path + os.sep + 'land_point' + '.kml')
+def __make_kml_linestring(kml, pos_LLH, wind_array, name, color):
+    
+    col = len(pos_LLH)
+    lines_hard = [kml.newlinestring(name=str(wind) + 'm/s, ' + name,
+                                    coords=hard, 
+                                    altitudemode=simplekml.AltitudeMode.relativetoground, 
+                                    ) for wind, hard in zip(wind_array, pos_LLH)]
+    
+    for i in range(col):
+        lines_hard[i].style.linestyle.color = color
+        lines_hard[i].style.linestyle.width = 4
 
 if __name__=='__main__':
 
@@ -67,3 +52,4 @@ if __name__=='__main__':
 
 else:
     from .coordinate import NED2LLH, NED2LLHforKml
+    
