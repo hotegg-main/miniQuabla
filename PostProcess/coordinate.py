@@ -22,30 +22,14 @@ def NED2LLH(launch_LLH, pos_NED, mag_dec):
         [           0.,              0., 1.]
     ])
     
-    # lat = launch_LLH[0]
-    # lon = launch_LLH[1]
-    # height = launch_LLH[2]
-    # LLH = np.array([lat, lon, height])#rad rad m
-
     launch_ECEF = __LLH2ECEF(launch_LLH)
     DCM_NED2ECEF = __ECEF2NED(launch_LLH)
-    # point_ECEF = np.dot(mat @ pos_NED, DCM_NED2ECEF) + launch_ECEF
     point_ECEF = np.dot(mat @ pos_NED, DCM_NED2ECEF) + launch_ECEF
-    # point_ECEF = DCM_NED2ECEF.dot(mat @ pos_NED) + launch_ECEF
 
     point_LLH = __ECEF2LLH(point_ECEF)
     return point_LLH
 
 def NED2LLHforKml(launch_LLH, pos_NED, mag_dec):
-
-    # lat = np.deg2rad(launch_LLH[0])
-    # lon = np.deg2rad(launch_LLH[1])
-    # height = launch_LLH[2]
-    # LLH = np.array([lat, lon, height])#rad rad m
-
-    # launch_ECEF = __LLH2ECEF(launch_LLH)
-    # DCM_NED2ECEF = __ECEF2NED(LLH).transpose()
-    # point_ECEF = DCM_NED2ECEF.dot(pos_NED) + launch_ECEF
 
     point_LLH = NED2LLH(launch_LLH, pos_NED, mag_dec)
     return np.array([point_LLH[1], point_LLH[0], point_LLH[2]])
