@@ -212,7 +212,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     plot_vel_descent(path, time_para, vel_descent)          # 降下速度
     plot_kml(path, param.launch.LLH, param.launch.mag_dec, pos, pos_para)
 
-def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para, param):
+def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para, exist_payload, time_payload=None, pos_payload=None):
 
     plot_mass(path, time, mass)
     plot_pos(path, time, pos)
@@ -221,6 +221,9 @@ def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_par
     plot_quternion(path, time, quat)
     
     plot_pos_para(path, time, pos, time_para, pos_para)
+    
+    if exist_payload:
+        plot_pos_payload(path, time_payload, pos_payload)
 
 #####################################################################
 # Subroutine 
@@ -271,6 +274,21 @@ def plot_pos_para(path, time, pos, time_para, pos_para):
     plt.minorticks_on()
     plt.grid(linestyle='--')
     plt.savefig(path + os.sep + 'Position_soft' + '.png')
+    plt.close()
+
+def plot_pos_payload(path, time, pos):
+
+    plt.figure('Position')
+    plt.plot(time[:], pos[:, 0], color=color[0], label='North')
+    plt.plot(time[:], pos[:, 1], color=color[1], label='East')
+    plt.plot(time[:], pos[:, 2], color=color[2], label='Down')
+    plt.xlim(left=time[0], right=time[-1])
+    plt.xlabel('Time [sec]')
+    plt.ylabel('Distance [m]')
+    plt.legend()
+    plt.minorticks_on()
+    plt.grid(linestyle='--')
+    plt.savefig(path + os.sep + 'Position_payload' + '.png')
     plt.close()
 
 def plot_vel(path, time, vel):

@@ -83,7 +83,7 @@ def dynamics_trajectory(time, x, param:Parameter):
 
     return dxdt
 
-def dynamics_parachute(time, x, param:Parameter):
+def dynamics_parachute(time, x, param:Parameter, para):
     '''
     Args:
         time    :時間
@@ -100,7 +100,7 @@ def dynamics_parachute(time, x, param:Parameter):
     wind_NED        = param.wind.get_wind_NED(altitude)
     vel_NED         = np.zeros(3)
     vel_NED[0:2]    = wind_NED[0:2]
-    vel_NED[2]      = param.para.get_velocity(time, altitude)
+    vel_NED[2]      = para.get_velocity(time, altitude)
 
     dxdt = np.zeros(3)
     dxdt[0:3] = vel_NED
@@ -227,6 +227,12 @@ def is_launch_clear(time, pos, dcm, lcg, param: Parameter):
         return True
 
 def event_land(time, x, param):
+
+    if x[2] < 0.:
+        return 1
+    else:
+        return 0
+def event_land_soft(time, x, param, para):
 
     if x[2] < 0.:
         return 1

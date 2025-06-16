@@ -9,13 +9,14 @@ class Parameter:
 
         self.config = self.__allocate_df(self.__read_config(path_config))
 
-        self.aero   = Aerodynamic(self.config['Aerodynamics'])
-        self.atmos  = Atmosphere()
-        self.wind   = Wind(self.config['Wind'])
-        self.engine = Engine(self.config['Engine'])
-        self.geomet = Geometry(self.config['Geometry'], self.engine)
-        self.launch = Launcher(self.config['Launcher'])
-        self.para   = Parachute(self.config['Parachute'])
+        self.aero    = Aerodynamic(self.config['Aerodynamics'])
+        self.atmos   = Atmosphere()
+        self.wind    = Wind(self.config['Wind'])
+        self.engine  = Engine(self.config['Engine'])
+        self.geomet  = Geometry(self.config['Geometry'], self.engine)
+        self.launch  = Launcher(self.config['Launcher'])
+        self.para    = Parachute(self.config['Parachute'])
+        self.payload = Payload(self.config['Payload'])
 
         self.dt = self.config['Solver']['dt']
         self.t_max = self.config['Solver']['t_max']
@@ -49,6 +50,7 @@ class Parameter:
         config_dst['Wind'] = {}
         config_dst['Launcher'] = {}
         config_dst['Parachute'] = {}
+        config_dst['Payload'] = {}
         config_dst['Solver'] = {}
 
         config_dst['Geometry']['diameter']      = float(config_src['diameter'])
@@ -94,15 +96,19 @@ class Parameter:
         config_dst['Launcher']['Height']    = float(config_src['height'])
         config_dst['Launcher']['mag_dec']   = float(config_src['mag_dec'])
         
-        config_dst['Solver']['dt']      = float(config_src['dt'])
-        config_dst['Solver']['t_max']   = float(config_src['t_max'])
-
         config_dst['Parachute']['vel_para_1st']     = float(config_src['vel_para_1st'])
         config_dst['Parachute']['exist_2nd_para']   = strtobool(config_src['exist_2nd_para'])
         config_dst['Parachute']['2nd_para_timer']   = strtobool(config_src['2nd_para_timer'])
         config_dst['Parachute']['vel_para_2nd']     = float(config_src['vel_para_2nd'])
         config_dst['Parachute']['alt_para_2nd']     = float(config_src['alt_para_2nd'])
         config_dst['Parachute']['time_2nd']         = float(config_src['time_2nd'])
+
+        config_dst['Payload']['exist_payload'] = strtobool(config_src['exist_payload'])
+        config_dst['Payload']['mass_payload']  = float(config_src['mass_payload'])
+        config_dst['Payload']['vel_payload']   = float(config_src['vel_payload'])
+        
+        config_dst['Solver']['dt']      = float(config_src['dt'])
+        config_dst['Solver']['t_max']   = float(config_src['t_max'])
 
         return config_dst
     
@@ -163,6 +169,7 @@ if __name__=='__main__':
     from engine import Engine
     from geometry import Geometry
     from launcher import Launcher
+    from payload import Payload
     
     __debug()
     print('Have a Good Day!')
@@ -175,3 +182,4 @@ else:
     from .geometry import Geometry
     from .launcher import Launcher
     from .parachute import Parachute
+    from .payload import Payload

@@ -7,40 +7,36 @@ import numpy as np
 import simplekml
 import pandas as pd
 
-def plot_kml(path, launch_LLH, mag_dec, pos_hard, pos_soft, wind_array, azimuth_array):
+def output_land_map(path, name, launch_LLH, mag_dec, pos_NED, wind_array, azimuth_array, color):
 
-    col = len(pos_hard)
-    row = len(pos_hard[0])
+    col = len(pos_NED)
+    row = len(pos_NED[0])
 
-    llh_hard = []
-    llh_soft = []
+    pos_llh = []
     speed_list   = []
     azimuth_list = []
     
-    llh_Kml_hard = np.zeros((col, row + 1, 3))
-    llh_Kml_soft = np.zeros((col, row + 1, 3))
+    pos_llh_kml = np.zeros((col, row + 1, 3))
 
     for i in range(col):
         for j in range(row):
             
-            llh_hard.append(NED2LLH(launch_LLH, pos_hard[i][j], mag_dec))
-            llh_soft.append(NED2LLH(launch_LLH, pos_soft[i][j], mag_dec))
+            pos_llh.append(NED2LLH(launch_LLH, pos_NED[i][j], mag_dec))
             speed_list.append(wind_array[i])
             azimuth_list.append(azimuth_array[j])
             
-            llh_Kml_hard[i][j] = NED2LLHforKml(launch_LLH, pos_hard[i][j], mag_dec)
-            llh_Kml_soft[i][j] = NED2LLHforKml(launch_LLH, pos_soft[i][j], mag_dec)
+            pos_llh_kml[i][j] = NED2LLHforKml(launch_LLH, pos_NED[i][j], mag_dec)
 
-        llh_Kml_hard[i][row] = llh_Kml_hard[i][0]
-        llh_Kml_soft[i][row] = llh_Kml_soft[i][0]
-    
-    __output_kml(path, llh_Kml_hard, llh_Kml_soft, wind_array)
+        pos_llh_kml[i][row] = pos_llh_kml[i][0]
 
-    llh_hard = np.array(llh_hard).T
-    llh_soft = np.array(llh_soft).T
+    # CSV出力
+    pos_llh = np.array(pos_llh).T
+    __output_csv(path, speed_list, azimuth_list, pos_llh, name)
 
-    __output_csv(path, speed_list, azimuth_list, llh_hard, 'trajectory')
-    __output_csv(path, speed_list, azimuth_list, llh_soft, 'parachute')
+    # KML出力
+    kml = simplekml.Kml()
+    __make_kml_linestring(kml, pos_llh_kml, wind_array, color)
+    kml.save(path + os.sep + 'land_point_' + name + '.kml')
 
 def __output_csv(path, speed, azimuth, llh, name):
     
@@ -53,19 +49,10 @@ def __output_csv(path, speed, azimuth, llh, name):
     
     }).to_csv(path + os.sep + 'land_point_' + name + '.csv', index=False)
 
-def __output_kml(path, hard_LLH, soft_LLH, wind_array):
-    
-    kml = simplekml.Kml()
-
-    __make_kml_linestring(kml, hard_LLH, wind_array, 'Trajectory', simplekml.Color.orange)
-    __make_kml_linestring(kml, soft_LLH, wind_array, 'Parachute' , simplekml.Color.aqua)
-
-    kml.save(path + os.sep + 'land_point' + '.kml')
-    
-def __make_kml_linestring(kml, pos_LLH, wind_array, name, color):
+def __make_kml_linestring(kml, pos_LLH, wind_array, color):
     
     col = len(pos_LLH)
-    lines_hard = [kml.newlinestring(name=str(wind) + 'm/s, ' + name,
+    lines_hard = [kml.newlinestring(name=str(wind) + 'm/s',
                                     coords=hard, 
                                     altitudemode=simplekml.AltitudeMode.relativetoground, 
                                     ) for wind, hard in zip(wind_array, pos_LLH)]
