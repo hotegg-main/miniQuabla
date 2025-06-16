@@ -35,7 +35,6 @@ $                           Wind
 $ ---------------------------------------------------------
 $  - Power Law model
 $ ---------------------------------------------------------
-$ wind_model,power
 wind_power_coeff,4.5
 wind_alt_ref,5.
 wind_speed,5.
@@ -43,7 +42,6 @@ wind_azimuth,90.
 $ ---------------------------------------------------------
 $  - Optional File Input
 $ ---------------------------------------------------------
-wind_model,original
 exist_wind_file, True
 wind_file,example/wind.csv
 

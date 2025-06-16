@@ -8,11 +8,18 @@ class Wind:
 
     def __init__(self, config):
 
-        self.model          = config['model']
+        # self.model          = config['model']
         self.speed_ref      = config['speed']
         self.azimuth_ref    = np.deg2rad(config['azimuth'])
         self.exponent       = config['power_coeff']
         self.altitude_ref   = config['altitude']
+        self.exist_file     = config['exist_file']
+
+        if self.exist_file:
+            self.model = MODEL_POWER
+
+        else:
+            self.model = MODEL_ORIGINAL
 
         if self.model == MODEL_POWER:
             alt_array       = np.linspace(0.0, 30.e+03, 3000)

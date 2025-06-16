@@ -81,11 +81,12 @@ class Parameter:
         config_dst['Aerodynamics']['CA_file']           = str(config_src['CA_file'])
         config_dst['Aerodynamics']['CNa_file']          = str(config_src['CNa_file'])
         
-        config_dst['Wind']['model']         = config_src['wind_model']
+        # config_dst['Wind']['model']         = config_src['wind_model']
         config_dst['Wind']['speed']         = float(config_src['wind_speed'])
         config_dst['Wind']['azimuth']       = float(config_src['wind_azimuth'])
         config_dst['Wind']['power_coeff']   = float(config_src['wind_power_coeff'])
         config_dst['Wind']['altitude']      = float(config_src['wind_alt_ref'])
+        config_dst['Wind']['exist_file']    = strtobool(config_src['exist_wind_file'])
         config_dst['Wind']['file']          = config_src['wind_file']
         
         config_dst['Launcher']['elevation'] = float(config_src['launch_elevation'])
