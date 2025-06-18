@@ -4,8 +4,9 @@ import quaternion
 from Parameter.parameter import Parameter
 import time
 import simplekml
+from PostProcess.directory_manage import make_result_directory
 
-def run_single(path_config, path_result):
+def run_single(path_config, path_result_src):
 
     from PostProcess.time_history import calc_sub_values
     from PostProcess.time_history import plot_main_values
@@ -29,6 +30,7 @@ def run_single(path_config, path_result):
     
     elp.append(time.time())
     
+    path_result = make_result_directory(path_result_src, param.name, 'single')
     plot_main_values(path_result, param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param.payload.exist, time_log_payload, pos_log_payload)
     elp.append(time.time())
     
@@ -42,7 +44,7 @@ def run_single(path_config, path_result):
 
     print(' ---> Simulation END Successfully!')
 
-def run_loop(path_config, path_result, cond):
+def run_loop(path_config, path_result_src, cond):
     '''落下分散計算用の関数'''
     import multiprocessing
     # from PostProcess.land_map import plot_kml
@@ -65,6 +67,9 @@ def run_loop(path_config, path_result, cond):
 
     speed_array   = np.linspace(speed_sta, speed_sta + col*speed_step, col+1)
     azimuth_array = np.linspace(azimuth_sta, azimuth_end, row)
+
+    dummy = Parameter(path_config)
+    path_result = make_result_directory(path_result_src, dummy.name, 'loop')
     
     elp = []
     elp.append(time.time())
@@ -119,7 +124,6 @@ def run_loop(path_config, path_result, cond):
         if dummy.payload.exist:
             result_payload[i][j] = result['Pos_payload']
 
-    # plot_kml(path_result, dummy.launch.LLH, dummy.launch.mag_dec, result_hard, result_soft, speed_array, azimuth_array)
     output_land_map(path_result, 'trajectory', dummy.launch.LLH, dummy.launch.mag_dec, result_hard, speed_array, azimuth_array, simplekml.Color.orange)
     output_land_map(path_result, 'parachute' , dummy.launch.LLH, dummy.launch.mag_dec, result_soft, speed_array, azimuth_array, simplekml.Color.aqua)
     if dummy.payload.exist:

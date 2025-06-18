@@ -18,8 +18,9 @@ class Parameter:
         self.para    = Parachute(self.config['Parachute'])
         self.payload = Payload(self.config['Payload'])
 
-        self.dt = self.config['Solver']['dt']
-        self.t_max = self.config['Solver']['t_max']
+        self.name   = self.config['Solver']['name']
+        self.dt     = self.config['Solver']['dt']
+        self.t_max  = self.config['Solver']['t_max']
 
     def __read_config(self, path):
         '''
@@ -108,6 +109,7 @@ class Parameter:
         config_dst['Payload']['mass_payload']  = float(config_src['mass_payload'])
         config_dst['Payload']['vel_payload']   = float(config_src['vel_payload'])
         
+        config_dst['Solver']['name']    = config_src['name']
         config_dst['Solver']['dt']      = float(config_src['dt'])
         config_dst['Solver']['t_max']   = float(config_src['t_max'])
 
