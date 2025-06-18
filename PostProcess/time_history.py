@@ -585,7 +585,7 @@ def plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro):
 
 def plot_moment_of_inertia(path, time, moi):
 
-    plt.figure('Moment')
+    plt.figure('Moment of Inertia')
 
     plt.subplot(211)
     plt.plot(time, moi[:, 1], color=color[0], label='Pitch')
