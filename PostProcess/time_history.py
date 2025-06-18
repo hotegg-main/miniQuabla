@@ -210,9 +210,9 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro)
     plot_omega_dot(path, time, omega_dot)                   # 角加速度
     plot_vel_descent(path, time_para, vel_descent)          # 降下速度
-    plot_kml(path, param.launch.LLH, param.launch.mag_dec, pos, pos_para)
+    
 
-def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para, exist_payload, time_payload=None, pos_payload=None):
+def plot_main_values(path, param, time, pos, vel, quat, omega, mass, time_para, pos_para, exist_payload, time_payload=None, pos_payload=None):
 
     plot_mass(path, time, mass)
     plot_pos(path, time, pos)
@@ -221,9 +221,11 @@ def plot_main_values(path, time, pos, vel, quat, omega, mass, time_para, pos_par
     plot_quternion(path, time, quat)
     
     plot_pos_para(path, time, pos, time_para, pos_para)
-    
+
     if exist_payload:
         plot_pos_payload(path, time_payload, pos_payload)
+    
+    plot_kml(path, exist_payload, param.launch.LLH, param.launch.mag_dec, pos, pos_para, pos_payload)
 
 #####################################################################
 # Subroutine 
@@ -651,7 +653,7 @@ def plot_vel_descent(path, time, vel):
     plt.savefig(path + os.sep + 'Velocity_descent' + '.png')
     plt.close()
 
-def plot_kml(path, launch_LLH, mag_dec, pos_hard, pos_soft):
+def plot_kml(path, exist_payload, launch_LLH, mag_dec, pos_hard, pos_soft, pos_payload):
     
     from PostProcess.coordinate import NED2LLHforKml
     
@@ -660,10 +662,26 @@ def plot_kml(path, launch_LLH, mag_dec, pos_hard, pos_soft):
     
     kml = simplekml.Kml(open=1)
     
-    __make_kml_linestring(kml, llh_hard, 'Trajectory', simplekml.Color.crimson)
-    __make_kml_linestring(kml, llh_soft, 'Parachute' , simplekml.Color.turquoise)
-    
+    __make_kml_linestring(kml, llh_hard, 'Trajectory', simplekml.Color.orange)
+    __make_kml_linestring(kml, llh_soft, 'Parachute' , simplekml.Color.aqua)
+
+    llh_land = []
+    llh_land.append([llh_hard[-1][1], llh_hard[-1][0]])
+    llh_land.append([llh_soft[-1][1], llh_soft[-1][0]])
+
+    name_index = ['hard', 'soft']
+
+    if exist_payload:
+        llh_payload = [NED2LLHforKml(launch_LLH, pos, mag_dec) for pos in pos_payload]
+        
+        __make_kml_linestring(kml, llh_payload, 'Payload' , simplekml.Color.crimson)
+        
+        llh_land.append([llh_payload[-1][1], llh_payload[-1][0]])
+        name_index.append('payload')
+
     kml.save(path + os.sep + 'flight_log' + '.kml')
+
+    pd.DataFrame(llh_land, name_index, columns=['Latitude [deg]', 'Longtitude [deg]']).to_csv(path + os.sep + 'land_point.csv')
 
 def __make_kml_linestring(kml, llh, name, color):
 

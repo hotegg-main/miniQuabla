@@ -36,7 +36,7 @@ def output_land_map(path, name, launch_LLH, mag_dec, pos_NED, wind_array, azimut
     # KML出力
     kml = simplekml.Kml()
     __make_kml_linestring(kml, pos_llh_kml, wind_array, color)
-    kml.save(path + os.sep + 'land_point_' + name + '.kml')
+    kml.save(path + os.sep + 'land_map_' + name + '.kml')
 
 def __output_csv(path, speed, azimuth, llh, name):
     
@@ -47,7 +47,7 @@ def __output_csv(path, speed, azimuth, llh, name):
         'Latitude [deg]'    : llh[0],
         'Longtitude [deg]'  : llh[1],
     
-    }).to_csv(path + os.sep + 'land_point_' + name + '.csv', index=False)
+    }).to_csv(path + os.sep + 'land_map_' + name + '.csv', index=False)
 
 def __make_kml_linestring(kml, pos_LLH, wind_array, color):
     
