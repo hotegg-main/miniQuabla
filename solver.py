@@ -47,7 +47,6 @@ def run_single(path_config, path_result_src):
 def run_loop(path_config, path_result_src, cond):
     '''落下分散計算用の関数'''
     import multiprocessing
-    # from PostProcess.land_map import plot_kml
     from PostProcess.land_map import output_land_map
     from tqdm import tqdm
 
@@ -63,7 +62,7 @@ def run_loop(path_config, path_result_src, cond):
     
     azimuth_sta  = cond['Azimuth']['min']
     azimuth_step = 360. / row
-    azimuth_end  = azimuth_step * (row - 1)
+    azimuth_end  = azimuth_sta + azimuth_step * (row - 1)
 
     speed_array   = np.linspace(speed_sta, speed_sta + col*speed_step, col+1)
     azimuth_array = np.linspace(azimuth_sta, azimuth_end, row)
@@ -88,7 +87,6 @@ def run_loop(path_config, path_result_src, cond):
         p = multiprocessing.Process(target=solve_dynamics_for_loop, args=(path_config, job, result_list))
         p_list.append(p)
         p.start()
-        # idx += 1
 
         for j, _p in enumerate(p_list):
             if not _p.is_alive():
