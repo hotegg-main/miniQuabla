@@ -6,7 +6,7 @@ import time
 import simplekml
 from PostProcess.directory_manage import make_result_directory
 
-def run_single(path_config, path_result_src):
+def run_single(path_config, path_result_src, name_case):
 
     from PostProcess.time_history import calc_sub_values
     from PostProcess.time_history import plot_main_values
@@ -30,7 +30,7 @@ def run_single(path_config, path_result_src):
     
     elp.append(time.time())
     
-    path_result = make_result_directory(path_result_src, param.name, 'single')
+    path_result = make_result_directory(path_result_src, param.name + '_' + name_case, 'single')
     plot_main_values(path_result, param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param.payload.exist, time_log_payload, pos_log_payload)
     elp.append(time.time())
     
