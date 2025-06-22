@@ -28,7 +28,6 @@ def dynamics_trajectory(time, x, param:Parameter):
     diameter_ref    = param.geomet.diameter
     mdot            = param.engine.get_mass_flow_rate(time)
     lcg             = param.geomet.get_Lcg(time)
-    # lcg             = param.geomet.get_Lcg(mass, param.engine.get_lcg_prop(time))
     Ij              = param.geomet.get_Ij(time)
     
     g, rho, cs  = param.atmos.get_atmosphere(altitude)
@@ -173,7 +172,9 @@ def calc_aero_moment(lcg, lcp, force_aero):
 def calc_aero_damping_moment(dynamic_pressure, vel_air_abs, omega, coeff_lp, coeff_mq, coeff_nr, area, length, diameter):
     '''空力的な減衰モーメント'''
 
-    moment  = dynamic_pressure \
+    if vel_air_abs > 0.:
+        
+        return dynamic_pressure \
             * np.array([coeff_lp,
                         coeff_mq,
                         coeff_nr]) \
@@ -183,8 +184,11 @@ def calc_aero_damping_moment(dynamic_pressure, vel_air_abs, omega, coeff_lp, coe
                         .5 * length**2]) \
             / vel_air_abs \
             * omega
+    
+    else:
 
-    return moment
+        return np.zeros(3)
+    
 
 def calc_gyro_moment(omega, Ij):
 

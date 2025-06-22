@@ -8,14 +8,13 @@ class Wind:
 
     def __init__(self, config):
 
-        # self.model          = config['model']
         self.speed_ref      = config['speed']
         self.azimuth_ref    = np.deg2rad(config['azimuth'])
         self.exponent       = config['power_coeff']
         self.altitude_ref   = config['altitude']
         self.exist_file     = config['exist_file']
 
-        if self.exist_file:
+        if not self.exist_file:
             self.model = MODEL_POWER
 
         else:
@@ -67,17 +66,23 @@ if __name__=='__main__':
 
     config = dict()
     config['model'] = 'power'
-    config['speed'] = 3.
+    config['speed'] = .0
     config['azimuth']   = 0.
     config['power_coeff']   = 4.5
     config['altitude']  = 2.
+    config['exist_file'] = False
     my = Wind(config)
 
-    alt_src = np.arange(0., 200, 1.).tolist()
-    speed = [my.get_wind_NED(alt)[0] for alt in alt_src]
+    alt_src = np.arange(0., 510, 10.)
+    speed = [- my.get_wind_NED(alt)[0] for alt in alt_src]
 
     plt.figure()
     plt.plot(speed, alt_src)
+    plt.xlabel('Speed [m/s]')
+    plt.ylabel('Altitude [m]')
+    plt.minorticks_on()
+    plt.grid(linestyle='--')
+    
     plt.show()
     
     print('End Debug')
