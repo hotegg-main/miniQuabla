@@ -79,7 +79,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
         'Time [sec]'                    : time,
         'North [m]'                     : pos[:, 0],
         'East [m]'                      : pos[:, 1],
-        'Dwon [m]'                      : pos[:, 2],
+        'Down [m]'                      : pos[:, 2],
         'Velocity_BODY-X [m/s]'         : vel[:, 0],
         'Velocity_BODY-Y [m/s]'         : vel[:, 1],
         'Velocity_BODY-Z [m/s]'         : vel[:, 2],
@@ -161,7 +161,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
         '\n',
         'Apogee, Time [sec]     : ', str(round(time[index_apogee], 3)), '\n'
         'Apogee, Altitude [km]  : ', str(round(altitude[index_apogee] * 1.e-03, 3)), '\n'
-        'Apogee, Dwonrange [km] : ', str(round(downrange[index_apogee] * 1.e-03, 3)), '\n'
+        'Apogee, Downrange [km] : ', str(round(downrange[index_apogee] * 1.e-03, 3)), '\n'
         'Apogee, Air Speed [m/s]: ', str(round(vel_air_abs[index_apogee], 3)), '\n'
         '\n',
         'Max Air Speed, Time [sec]        : ', str(round(time[index_max_air_speed], 3)), '\n'
