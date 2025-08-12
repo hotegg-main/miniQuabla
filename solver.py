@@ -160,6 +160,7 @@ def solve_dynamics(param: Parameter):
         np.arange(time_sta, param.engine.time_act * 1.2, param.dt),
         np.arange(param.engine.time_act * 1.2, time_end, param.dt * 5)
     )
+    t_eval[-1] = np.min([time_end, t_eval[-1]])
     
     result = solve_ivp(dynamics_trajectory, t_span=(time_sta, param.t_max), y0=x0, args=(param, ), events=event_land, dense_output=True, rtol=1.e-05, t_eval=t_eval)
 
@@ -179,6 +180,7 @@ def solve_dynamics(param: Parameter):
 
     event_land_soft.terminal = True
     t_eval = np.arange(time0, param.t_max, param.dt * 10.)
+    t_eval[-1] = np.min([time_end, t_eval[-1]])
     result = solve_ivp(dynamics_parachute, t_span=(time0, param.t_max), t_eval=t_eval, y0=x0, args=(param, param.para, ), events=event_land_soft, rtol=1.e-06, atol=1.e-04)
     time_log_para = result.t
     pos_log_para  = result.y[0:3].T
@@ -216,6 +218,7 @@ def solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_lo
     time_sta = time_log[index]
     time_end = param.t_max
     t_eval = np.arange(time_sta, time_end, param.dt * 5.)
+    t_eval[-1] = np.min(time_end, t_eval[-1])
 
     result = solve_ivp(dynamics_trajectory, t_span=(time_sta, param.t_max), y0=x0, args=(param, ), events=event_land, dense_output=True, rtol=1.e-05, t_eval=t_eval)
 
