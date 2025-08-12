@@ -193,6 +193,7 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     ########################################
     plot_euler(path, time, euler)                           # オイラー角
     plot_force_aero(path, time, force_aero)                 # 空気力
+    plot_force_thrust(path, time, force_thrust)             # 推力
     plot_acc_body(path, time, acc_body)                     # 機体軸系加速度
     plot_vel_air(path, time, vel_air)                       # 対気速度
     plot_dynamic_pressure(path, time, dynamic_pressure)     # 動圧
@@ -200,7 +201,6 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     plot_mach(path, time, mach)                             # マッハ数
     plot_static_margin(path, time, Fst)                     # Fst
     plot_atomosphere(path, time, grav, rho, cs)             # 重力加速度、大気密度、音速
-    # plot_CG_CP(path, time, lcg, lcg_prop, lcp)              # 重心、圧力中心
     plot_CG_CP(path, time, lcg, lcp)                        # 重心、圧力中心
     plot_coefficient_aero(path, time, coeff_A, coeff_Na)    # 安定微係数（空力係数）
     plot_moment_of_inertia(path, time, Ij)                  # 慣性モーメント
@@ -370,6 +370,21 @@ def plot_force_aero(path, time, force):
     plt.minorticks_on()
     plt.grid(linestyle='--')
     plt.savefig(path + os.sep + 'Force_aero' + '.png')
+    plt.close()
+
+def plot_force_thrust(path, time, force):
+
+    plt.figure('Force_thrust')
+    plt.plot(time, force[:, 0], color=color[0])
+    # plt.plot(time, force[:, 1], color=color[1], label='Side Force')
+    # plt.plot(time, force[:, 2], color=color[2], label='Normal Force')
+    plt.xlim(left=0., right=time[-1])
+    plt.xlabel('Time [sec]')
+    plt.ylabel('Force [N]')
+    # plt.legend()
+    plt.minorticks_on()
+    plt.grid(linestyle='--')
+    plt.savefig(path + os.sep + 'Force_thrust' + '.png')
     plt.close()
 
 def plot_acc_body(path, time, acc):
