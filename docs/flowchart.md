@@ -1,4 +1,4 @@
-:::mermaid
+```mermaid
 flowchart TD
 start1([スタート])
 subgraph Parameter
@@ -14,7 +14,7 @@ subgraph Result
 end
 start1 --> param_read
 param_initial --> solve_launch_clear
-:::
+```
 
 # Parameter
 :::mermaid
