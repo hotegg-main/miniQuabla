@@ -69,16 +69,16 @@ flowchart TD
 $ python simulator.py
 ```
 
+落下分散を計算するかどうかは、`simulator.py`のコード中のコメントアウトで切り替える。</br>
+単一条件の機動計算のみの場合は、`run_single()`のコメントアウトを、
+落下分散の計算は、`run_loop()`のコメントアウトを外す。
+
 # Set up
 
 必要なPythonのライブラリのインストール
 ```
 $ python -m pip install -r requirements.txt
 ```
-
-落下分散を計算するかどうかは、`simulator.py`のコード中のコメントアウトで切り替える。</br>
-単一条件の機動計算のみの場合は、`run_single()`のコメントアウトを、
-落下分散の計算は、`run_loop()`のコメントアウトを外す。
 
 # Future Work
 * HTMLで結果まとめ
