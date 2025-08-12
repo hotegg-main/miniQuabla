@@ -46,9 +46,9 @@ flowchart TD
     start_proc([スタート])
     end_proc([終了])
 
-    prepare_config["諸元ファイルを作成する。</br>（詳細はRocket Configuration
+    prepare_config["諸元ファイルを作成</br>（詳細はRocket Configuration
 へ）"]
-    execute_cmd["simulator.pyを実行して、</br>シミュレータを実行する。</br>（詳細はExecuteへ）"]
+    execute_cmd["simulator.pyを実行して、</br>シミュレータを実行</br>（詳細はExecuteへ）"]
 
     start_proc --> prepare_config --> execute_cmd --> end_proc
     
@@ -63,7 +63,7 @@ flowchart TD
 
 # Execute
 
-コマンドプロンプト(Win OS)やターミナル上(Mac OS)で下記のコマンドでsimulator.pyを実行する
+コマンドプロンプト(Win OS)やターミナル上(Mac OS)で下記のコマンドで`simulator.py`を実行する。
 
 ```
 $ python simulator.py
