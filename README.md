@@ -29,10 +29,9 @@ $ python -m pip install -r requirements.txt
 ```
 
 # Future Work
-* ペイロード
-* 結果出力用のフォルダ作成
 * HTMLで結果まとめ
 * ファイルの入力・出力規則
+* 落下分散計算時の全条件の到達高度などの出力
 
 # Assumption
 * 重力加速度:一定
