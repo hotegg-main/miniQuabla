@@ -85,6 +85,7 @@ $ python -m pip install -r requirements.txt
 * ファイルの入力・出力規則
 * 落下分散計算時の全条件の到達高度などの出力
 * mmなどの単位系見直し
+* 諸元ファイルの文字コードが異なる時のエラー処理
 
 # Assumption
 * 重力加速度:一定
