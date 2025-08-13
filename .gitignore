@@ -1,4 +1,5 @@
 /.vscode
-/test
+test/*
 __pycache__
+!/test/dummy
 **/__pycache__/**
