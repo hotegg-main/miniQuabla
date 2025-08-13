@@ -5,6 +5,7 @@ from Parameter.parameter import Parameter
 import time
 import simplekml
 from PostProcess.directory_manage import make_result_directory
+import os
 
 def run_single(path_config, path_result_src, name_case):
 
@@ -30,6 +31,9 @@ def run_single(path_config, path_result_src, name_case):
     
     elp.append(time.time())
     
+    # Check whether the result directory exists, if not create it
+    if not os.path.exists(path_result_src):
+        os.makedirs(path_result_src)
     path_result = make_result_directory(path_result_src, param.name + '_' + name_case, 'single')
     plot_main_values(path_result, param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param.payload.exist, time_log_payload, pos_log_payload)
     elp.append(time.time())
