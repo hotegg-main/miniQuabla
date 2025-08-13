@@ -54,23 +54,23 @@ class Parameter:
         config_dst['Payload'] = {}
         config_dst['Solver'] = {}
 
-        config_dst['Geometry']['diameter']      = float(config_src['diameter'])
-        config_dst['Geometry']['length']        = float(config_src['length'])
+        config_dst['Geometry']['diameter']      = 1.e-03 * float(config_src['diameter'])
+        config_dst['Geometry']['length']        = 1.e-03 * float(config_src['length'])
         config_dst['Geometry']['mass_dry']      = float(config_src['mass_dry'])
-        config_dst['Geometry']['lcg_dry']       = float(config_src['lcg_dry'])
+        config_dst['Geometry']['lcg_dry']       = 1.e-03 * float(config_src['lcg_dry'])
         config_dst['Geometry']['Ij_roll_dry']   = float(config_src['Ij_dry_roll'])
         config_dst['Geometry']['Ij_pitch_dry']  = float(config_src['Ij_dry_pitch'])
         
         config_dst['Engine']['mass_ox']         = float(config_src['mass_ox'])
         config_dst['Engine']['mass_fuel_bef']   = float(config_src['mass_fuel_bef'])
         config_dst['Engine']['mass_fuel_aft']   = float(config_src['mass_fuel_aft'])
-        config_dst['Engine']['lcg_ox']          = float(config_src['lcg_ox'])
-        config_dst['Engine']['lcg_fuel']        = float(config_src['lcg_fuel'])
-        config_dst['Engine']['l_tank_cap']      = float(config_src['l_tank_cap'])
+        config_dst['Engine']['lcg_ox']          = 1.e-03 * float(config_src['lcg_ox'])
+        config_dst['Engine']['lcg_fuel']        = 1.e-03 * float(config_src['lcg_fuel'])
+        config_dst['Engine']['l_tank_cap']      = 1.e-03 * float(config_src['l_tank_cap'])
         config_dst['Engine']['thrust_file']     = config_src['thrust_file']
         # config_dst['Engine']['time_burn']       = float(config_src['time_burn'])
         
-        config_dst['Aerodynamics']['lcp']               = float(config_src['lcp'])
+        config_dst['Aerodynamics']['lcp']               = 1.e-03 * float(config_src['lcp'])
         config_dst['Aerodynamics']['CA']                = float(config_src['CA'])
         config_dst['Aerodynamics']['CNa']               = float(config_src['CNa'])
         config_dst['Aerodynamics']['Clp']               = float(config_src['Clp'])
