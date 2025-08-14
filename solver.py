@@ -8,25 +8,34 @@ from PostProcess.directory_manage import make_result_directory
 
 def run_single(path_config, path_result_src, name_case):
 
-    from PostProcess.time_history import calc_sub_values
-    from PostProcess.time_history import plot_main_values
+    from PostProcess.time_history import calc_sub_values, plot_main_values, calc_index_apogee
 
     param = Parameter(path_config)
     
     elp = []
     elp.append(time.time())
     
-    time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
-        = solve_dynamics(param)
+    # time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
+    #     = solve_dynamics(param)
+    time_log, pos_log, vel_log, quat_log, omega_log, mass_log \
+        = solve_trajectory(param)
+    
+    # 初期値設定
+    index = calc_index_apogee(pos_log)
+    time0 = time_log[index]
+    pos0  = pos_log[index]
     
     if param.payload.exist:
         # ペイロード放出あり
-        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_payload, pos_log_payload \
-            = solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index)
+        # time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_payload, pos_log_payload \
+        #     = solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index)
+        time_log_payload, pos_log_payload = solve_parachute(param, param.payload, time0, pos0)
         
     else:
         time_log_payload    = None
         pos_log_payload     = None
+
+    time_log_para, pos_log_para = solve_parachute(param, param.para, time0, pos0)
     
     elp.append(time.time())
     
@@ -47,7 +56,6 @@ def run_single(path_config, path_result_src, name_case):
 def run_loop(path_config, path_result_src, cond):
     '''落下分散計算用の関数'''
     import multiprocessing
-    from PostProcess.land_map import output_land_map
     from tqdm import tqdm
 
     job_list = []
@@ -115,6 +123,60 @@ def run_loop(path_config, path_result_src, cond):
     make_summay_for_loop(path_result, result_list, speed_array, azimuth_array, dummy)
     
     print(' ---> Simulation END Successfully!')
+
+def solve_trajectory(param: Parameter):
+
+    from dynamics import dynamics_trajectory, event_land
+
+    pos0, vel0, quat0, omega0, mass0 = param.get_initial_param()
+    x0 = np.zeros(14)
+    x0[0:3]     = pos0
+    x0[3:6]     = vel0
+    x0[6:10]    = quaternion.as_float_array(quat0)
+    x0[10:13]   = omega0
+    x0[13]      = mass0
+
+    event_land.terminal = True
+    time_sta = 0.
+    time_end = param.t_max
+    t_eval = np.append(
+        np.arange(time_sta, param.engine.time_act * 1.2, param.dt),
+        np.arange(param.engine.time_act * 1.2, time_end, param.dt * 5)
+    )
+    t_eval[-1] = np.min([time_end, t_eval[-1]])
+    
+    result = solve_ivp(dynamics_trajectory, t_span=(time_sta, param.t_max), y0=x0, args=(param, ), events=event_land, dense_output=True, rtol=1.e-05, t_eval=t_eval)
+
+    # 結果のコピー
+    time_log  = result.t
+    pos_log   = result.y[0:3].T
+    vel_log   = result.y[3:6].T
+    quat_log  = result.y[6:10].T
+    omega_log = result.y[10:13].T
+    mass_log  = result.y[13]
+
+    return time_log, pos_log, vel_log, quat_log, omega_log, mass_log
+
+def solve_parachute(param: Parameter, para, time0, pos0):
+
+    from dynamics import dynamics_parachute, event_land_soft
+
+    x0 = np.zeros(3)
+    x0[0:3] = pos0
+
+    event_land_soft.terminal = True
+    time_end = param.t_max
+    t_eval = np.arange(time0, param.t_max, param.dt * 10.)
+    t_eval[-1] = np.min([time_end, t_eval[-1]])
+    
+    result = solve_ivp(dynamics_parachute, t_span=(time0, param.t_max), t_eval=t_eval, y0=x0, args=(param, para, ), events=event_land_soft, rtol=1.e-06, atol=1.e-04)
+    
+    # 結果のコピー
+    time_log_para = result.t
+    pos_log_para  = result.y[0:3].T
+
+    return time_log_para, pos_log_para
+
 
 def solve_dynamics(param: Parameter):
     '''
@@ -227,28 +289,39 @@ def solve_dynamics_for_loop(path, job, result):
     番号、風向、風速
     '''
 
-    from PostProcess.time_history import calc_values_min
+    from PostProcess.time_history import calc_values_min, calc_index_apogee
 
     param = Parameter(path)
     param.wind.set_power_model(job['Wind Speed'], job['Wind Azimuth'])
 
     res = dict()
 
+    time_log, pos_log, vel_log, quat_log, omega_log, mass_log \
+        = solve_trajectory(param)
+    
+    # 初期値設定
+    index = calc_index_apogee(pos_log)
+    time0 = time_log[index]
+    pos0  = pos_log[index]
+    
     if param.payload.exist:
         # ペイロード放出あり
         
-        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
-            = solve_dynamics(param)
+        # time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
+        #     = solve_dynamics(param)
         
-        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_payload \
-            = solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index)
+        # time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_payload \
+        #     = solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index)
+        time_log_payload, pos_log_payload = solve_parachute(param, param.payload, time0, pos0)
         
         res['Pos_payload'] = pos_log_payload[-1]
 
-    else:
+    # else:
 
-        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
-            = solve_dynamics(param)
+    #     time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
+    #         = solve_dynamics(param)
+        
+    time_log_para, pos_log_para = solve_parachute(param, param.para, time0, pos0)
     
     res['Column']   = job['Column']
     res['Row']      = job['Row']
