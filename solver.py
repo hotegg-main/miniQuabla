@@ -106,29 +106,13 @@ def run_loop(path_config, path_result_src, cond):
     for p in p_list:
         p.join()
     
+    # 経過時間
     elp.append(time.time())
     print('Elapse:', np.round(elp[1] - elp[0], 3), 'sec')
 
+    # 結果整理
     dummy = Parameter(path_config)
-    
-    result_hard = np.zeros((col, row, 3))
-    result_soft = np.zeros((col, row, 3))
-    result_payload = np.zeros((col, row, 3))
-    results = np.zeros((col, row, 3)).tolist()
-    for result in result_list:
-        i = result['Column']
-        j = result['Row']
-        result_hard[i][j] = result['Pos_hard']
-        result_soft[i][j] = result['Pos_soft']
-        results[i][j] = result['results']
-        if dummy.payload.exist:
-            result_payload[i][j] = result['Pos_payload']
-
-    make_summay_for_loop(path_result, result_list, speed_array, azimuth_array)
-    output_land_map(path_result, 'trajectory', dummy.launch.LLH, dummy.launch.mag_dec, result_hard, speed_array, azimuth_array, simplekml.Color.orange)
-    output_land_map(path_result, 'parachute' , dummy.launch.LLH, dummy.launch.mag_dec, result_soft, speed_array, azimuth_array, simplekml.Color.aqua)
-    if dummy.payload.exist:
-        output_land_map(path_result, 'payload', dummy.launch.LLH, dummy.launch.mag_dec, result_payload, speed_array, azimuth_array, simplekml.Color.crimson)
+    make_summay_for_loop(path_result, result_list, speed_array, azimuth_array, dummy)
     
     print(' ---> Simulation END Successfully!')
 
@@ -221,7 +205,7 @@ def solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_lo
     time_sta = time_log[index]
     time_end = param.t_max
     t_eval = np.arange(time_sta, time_end, param.dt * 5.)
-    t_eval[-1] = np.min(time_end, t_eval[-1])
+    t_eval[-1] = np.min([time_end, t_eval[-1]])
 
     result = solve_ivp(dynamics_trajectory, t_span=(time_sta, param.t_max), y0=x0, args=(param, ), events=event_land, dense_output=True, rtol=1.e-05, t_eval=t_eval)
 
@@ -271,12 +255,15 @@ def solve_dynamics_for_loop(path, job, result):
     res['Pos_hard'] = pos_log[-1]
     res['Pos_soft'] = pos_log_para[-1]
     res['results']  = calc_values_min(time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param)
+    if param.payload.exist:
+        res['results']['pos_land_payload'] = pos_log_payload[-1]
     result.append(res)
 
-def make_summay_for_loop(path, result_list, speed, azimuth):
+def make_summay_for_loop(path, result_list, speed, azimuth, param: Parameter):
 
     import pandas as pd
     import os
+    from PostProcess.land_map import output_land_map
 
     index_list = (speed)
     header_list = (azimuth)
@@ -292,6 +279,9 @@ def make_summay_for_loop(path, result_list, speed, azimuth):
     time_land_soft      = np.zeros((col, row))
     mach_max            = np.zeros((col, row))
     vel_air_max         = np.zeros((col, row))
+    pos_land_hard       = np.zeros((col, row, 3))
+    pos_land_soft       = np.zeros((col, row, 3))
+    pos_land_payload    = np.zeros((col, row, 3))
 
     for result in result_list:
 
@@ -307,6 +297,10 @@ def make_summay_for_loop(path, result_list, speed, azimuth):
         time_land_soft[i, j]    = res['time_land_soft']
         mach_max[i, j]          = res['mach_max']
         vel_air_max[i, j]       = res['vel_air_max']
+        pos_land_hard[i, j]     = res['pos_land_hard']
+        pos_land_soft[i, j]     = res['pos_land_soft']
+        if param.payload.exist:
+            pos_land_payload[i, j] = res['pos_land_payload']
 
     pd.DataFrame(time_launch_clear  , index=index_list, columns=header_list).to_csv(path + os.sep + 'time_launch_clear' + '.csv')
     pd.DataFrame(vel_launch_clear   , index=index_list, columns=header_list).to_csv(path + os.sep + 'vel_launch_clear' + '.csv')
@@ -316,6 +310,12 @@ def make_summay_for_loop(path, result_list, speed, azimuth):
     pd.DataFrame(time_land_soft     , index=index_list, columns=header_list).to_csv(path + os.sep + 'time_land_soft' + '.csv')
     pd.DataFrame(mach_max           , index=index_list, columns=header_list).to_csv(path + os.sep + 'mach_max' + '.csv')
     pd.DataFrame(vel_air_max        , index=index_list, columns=header_list).to_csv(path + os.sep + 'vel_air_max' + '.csv')
+
+    # 落下地点
+    output_land_map(path, 'trajectory', param.launch.LLH, param.launch.mag_dec, pos_land_hard, speed, azimuth, simplekml.Color.orange)
+    output_land_map(path, 'parachute' , param.launch.LLH, param.launch.mag_dec, pos_land_soft, speed, azimuth, simplekml.Color.aqua)
+    if param.payload.exist:
+        output_land_map(path, 'payload', param.launch.LLH, param.launch.mag_dec, pos_land_payload, speed, azimuth, simplekml.Color.crimson)
 
 def check_apogee(time_log, pos_log):
 

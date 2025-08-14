@@ -250,9 +250,11 @@ def calc_values_min(time, pos, vel, quat, omega, mass, time_para, pos_para, para
     
     # 着地（弾道）
     result['time_land_hard'] = time[-1]
+    result['pos_land_hard']  = pos[-1]
     
     # 着地（減速）
     result['time_land_soft'] = time_para[-1]
+    result['pos_land_soft']  = pos_para[-1]
 
     # 最大マッハ数
     result['mach_max'] = mach[index_max_mach]
