@@ -70,6 +70,19 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     vel_descent     = np.array([param.para.get_velocity(t, alt) for t, alt in zip(time_para, altitude_para)])
 
     ########################################
+    # Summary
+    ########################################
+    Fst_max, Fst_min    = calc_max_min_Fst(Fst)
+    index_launch_clear  = calc_index_launch_clear(pos, dcm, param, lcg)
+    index_apogee        = calc_index_apogee(pos)
+    index_max_air_speed = calc_max_air_speed(vel_air_abs)
+    index_max_Q         = calc_max_Q(dynamic_pressure)
+    index_max_mach      = calc_max_mach(mach)
+
+    aoa[:index_launch_clear, 0] = 0.
+    acc_body[:index_launch_clear, 1:3] = 0.
+
+    ########################################
     # to CSV
     ########################################
     pd.DataFrame({
@@ -94,6 +107,9 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
         'Gravity [m/s2]'                : grav, 
         'Air Density [kg/m3]'           : rho, 
         'Sound Speed [m/s]'             : cs,
+        'Velocity_NED-X [m/s]'          : vel_NED[:, 0],
+        'Velocity_NED-Y [m/s]'          : vel_NED[:, 1],
+        'Velocity_NED-Z [m/s]'          : vel_NED[:, 2],
         'Wind_NED-X [m/s]'              : wind_NED[:, 0],
         'Wind_NED-Y [m/s]'              : wind_NED[:, 1],
         'Wind_NED-Z [m/s]'              : wind_NED[:, 2],
@@ -101,8 +117,8 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
         'Air_Speed_BODY-Y [m/s]'        : vel_air[:, 1],
         'Air_Speed_BODY-Z [m/s]'        : vel_air[:, 2],
         'Air_Speed_Norm [m/s]'          : vel_air_abs,
-        'Angle of Attack [deg]'         : aoa[:, 0],
-        'Angle of Side-Slip [deg]'      : aoa[:, 1],
+        'Angle of Attack [deg]'         : np.rad2deg(aoa[:, 0]),
+        'Angle of Side-Slip [deg]'      : np.rad2deg(aoa[:, 1]),
         'Mach Numpber [-]'              : mach,
         'Dynamic Pressure [kPa]'        : dynamic_pressure * 1.E-03,
         'Axial Coefficient [-]'         : coeff_A,
@@ -135,18 +151,6 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     
     }).to_csv(path + os.sep + 'log.csv', index=False)
 
-    ########################################
-    # Summary
-    ########################################
-    Fst_max, Fst_min    = calc_max_min_Fst(Fst)
-    index_launch_clear  = calc_index_launch_clear(pos, dcm, param, lcg)
-    index_apogee        = calc_index_apogee(pos)
-    index_max_air_speed = calc_max_air_speed(vel_air_abs)
-    index_max_Q         = calc_max_Q(dynamic_pressure)
-    index_max_mach      = calc_max_mach(mach)
-
-    aoa[:index_launch_clear, 0] = 0.
-    acc_body[:index_launch_clear, 1:3] = 0.
 
     lines_summary = [
         'Max. Fst [%]: ', str(round(Fst_max, 3)), '\n',
