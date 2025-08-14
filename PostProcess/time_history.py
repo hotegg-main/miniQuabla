@@ -731,8 +731,8 @@ def plot_kml(path, exist_payload, launch_LLH, mag_dec, pos_hard, pos_soft, pos_p
     
     from PostProcess.coordinate import NED2LLHforKml
     
-    llh_hard = [NED2LLHforKml(launch_LLH, pos, mag_dec) for pos in pos_hard]
-    llh_soft = [NED2LLHforKml(launch_LLH, pos, mag_dec) for pos in pos_soft]
+    llh_hard = [NED2LLHforKml(launch_LLH, pos) for pos in pos_hard]
+    llh_soft = [NED2LLHforKml(launch_LLH, pos) for pos in pos_soft]
     
     kml = simplekml.Kml(open=1)
     
@@ -746,7 +746,7 @@ def plot_kml(path, exist_payload, launch_LLH, mag_dec, pos_hard, pos_soft, pos_p
     name_index = ['hard', 'soft']
 
     if exist_payload:
-        llh_payload = [NED2LLHforKml(launch_LLH, pos, mag_dec) for pos in pos_payload]
+        llh_payload = [NED2LLHforKml(launch_LLH, pos) for pos in pos_payload]
         
         __make_kml_linestring(kml, llh_payload, 'Payload' , simplekml.Color.crimson)
         

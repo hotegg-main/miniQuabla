@@ -15,8 +15,6 @@ def run_single(path_config, path_result_src, name_case):
     elp = []
     elp.append(time.time())
     
-    # time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
-    #     = solve_dynamics(param)
     time_log, pos_log, vel_log, quat_log, omega_log, mass_log \
         = solve_trajectory(param)
     
@@ -27,8 +25,6 @@ def run_single(path_config, path_result_src, name_case):
     
     if param.payload.exist:
         # ペイロード放出あり
-        # time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_payload, pos_log_payload \
-        #     = solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index)
         time_log_payload, pos_log_payload = solve_parachute(param, param.payload, time0, pos0)
         
     else:
@@ -177,66 +173,6 @@ def solve_parachute(param: Parameter, para, time0, pos0):
 
     return time_log_para, pos_log_para
 
-
-def solve_dynamics(param: Parameter):
-    '''
-    Return:
-        time_log        :時間の時間履歴
-        pos_log         :位置のの時間履歴
-        vel_log         :速度の時間履歴
-        quat_log        :クォータニオンの時間履歴
-        omega_log       :角速度の時間履歴
-        mass_log        :質量の時間履歴
-        time_log_para   :時間の時間履歴（減速落下）
-        pos_log_para    :位置の時間履歴（減速落下）
-        index           :パラシュート放出時のインデックス
-    '''
-    from dynamics import dynamics_trajectory, dynamics_parachute, event_land, event_land_soft
-
-    # Trajectory
-    pos0, vel0, quat0, omega0, mass0 = param.get_initial_param()
-    x0 = np.zeros(14)
-    x0[0:3]     = pos0
-    x0[3:6]     = vel0
-    x0[6:10]    = quaternion.as_float_array(quat0)
-    x0[10:13]   = omega0
-    x0[13]      = mass0
-
-    event_land.terminal = True
-    time_sta = 0.
-    time_end = param.t_max
-    t_eval = np.append(
-        np.arange(time_sta, param.engine.time_act * 1.2, param.dt),
-        np.arange(param.engine.time_act * 1.2, time_end, param.dt * 5)
-    )
-    t_eval[-1] = np.min([time_end, t_eval[-1]])
-    
-    result = solve_ivp(dynamics_trajectory, t_span=(time_sta, param.t_max), y0=x0, args=(param, ), events=event_land, dense_output=True, rtol=1.e-05, t_eval=t_eval)
-
-    time_log  = result.t
-    pos_log   = result.y[0:3].T
-    vel_log   = result.y[3:6].T
-    quat_log  = result.y[6:10].T
-    omega_log = result.y[10:13].T
-    mass_log  = result.y[13]
-
-    index_apogee, _, _ = check_apogee(time_log, pos_log)
-    
-    # Parachute
-    time0 = time_log[index_apogee]
-    x0 = np.zeros(3)
-    x0[0:3] = pos_log[index_apogee]
-
-    event_land_soft.terminal = True
-    t_eval = np.arange(time0, param.t_max, param.dt * 10.)
-    t_eval[-1] = np.min([time_end, t_eval[-1]])
-    result = solve_ivp(dynamics_parachute, t_span=(time0, param.t_max), t_eval=t_eval, y0=x0, args=(param, param.para, ), events=event_land_soft, rtol=1.e-06, atol=1.e-04)
-    time_log_para = result.t
-    pos_log_para  = result.y[0:3].T
-
-    return time_log, pos_log, vel_log, quat_log, omega_log, mass_log, \
-        time_log_para, pos_log_para, index_apogee
-
 def solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index):
     '''
     ペイロードの軌道とペイロード放出後の機体の軌道を再計算する
@@ -307,20 +243,10 @@ def solve_dynamics_for_loop(path, job, result):
     if param.payload.exist:
         # ペイロード放出あり
         
-        # time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
-        #     = solve_dynamics(param)
-        
-        # time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_payload \
-        #     = solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index)
         time_log_payload, pos_log_payload = solve_parachute(param, param.payload, time0, pos0)
         
         res['Pos_payload'] = pos_log_payload[-1]
 
-    # else:
-
-    #     time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
-    #         = solve_dynamics(param)
-        
     time_log_para, pos_log_para = solve_parachute(param, param.para, time0, pos0)
     
     res['Column']   = job['Column']
@@ -385,18 +311,10 @@ def make_summay_for_loop(path, result_list, speed, azimuth, param: Parameter):
     pd.DataFrame(vel_air_max        , index=index_list, columns=header_list).to_csv(path + os.sep + 'vel_air_max' + '.csv')
 
     # 落下地点
-    output_land_map(path, 'trajectory', param.launch.LLH, param.launch.mag_dec, pos_land_hard, speed, azimuth, simplekml.Color.orange)
-    output_land_map(path, 'parachute' , param.launch.LLH, param.launch.mag_dec, pos_land_soft, speed, azimuth, simplekml.Color.aqua)
+    output_land_map(path, 'trajectory', param.launch.LLH, pos_land_hard, speed, azimuth, simplekml.Color.orange)
+    output_land_map(path, 'parachute' , param.launch.LLH, pos_land_soft, speed, azimuth, simplekml.Color.aqua)
     if param.payload.exist:
-        output_land_map(path, 'payload', param.launch.LLH, param.launch.mag_dec, pos_land_payload, speed, azimuth, simplekml.Color.crimson)
-
-def check_apogee(time_log, pos_log):
-
-    index = np.argmax( - pos_log[:, 2])
-    time_apogee = time_log[index]
-    pos_apogee  = pos_log[index]
-
-    return index, time_apogee, pos_apogee
+        output_land_map(path, 'payload', param.launch.LLH, pos_land_payload, speed, azimuth, simplekml.Color.crimson)
 
 if __name__=='__main__':
 

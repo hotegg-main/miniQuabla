@@ -8,30 +8,24 @@ from matplotlib.pyplot import ylim
 
 #LLH :[latitude, longtitude, height] = [緯度,経度,高度]
 
-def NED2LLH(launch_LLH, pos_NED, mag_dec):
+def NED2LLH(launch_LLH, pos_NED):
     '''
     Args:
         mag_dec: 磁気偏角 [deg]
     '''
     
     # 磁気偏角分回転させるための回転行列
-    theta = np.deg2rad(mag_dec)
-    mat = np.array([
-        [np.cos(theta), - np.sin(theta), 0.],
-        [np.sin(theta),   np.cos(theta), 0.],
-        [           0.,              0., 1.]
-    ])
     
     launch_ECEF = __LLH2ECEF(launch_LLH)
     DCM_NED2ECEF = __ECEF2NED(launch_LLH)
-    point_ECEF = np.dot(mat @ pos_NED, DCM_NED2ECEF) + launch_ECEF
+    point_ECEF = np.dot(pos_NED, DCM_NED2ECEF) + launch_ECEF
 
     point_LLH = __ECEF2LLH(point_ECEF)
     return point_LLH
 
-def NED2LLHforKml(launch_LLH, pos_NED, mag_dec):
+def NED2LLHforKml(launch_LLH, pos_NED):
 
-    point_LLH = NED2LLH(launch_LLH, pos_NED, mag_dec)
+    point_LLH = NED2LLH(launch_LLH, pos_NED)
     return np.array([point_LLH[1], point_LLH[0], point_LLH[2]])
 
 def __LLH2ECEF(LLH):

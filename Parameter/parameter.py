@@ -11,7 +11,7 @@ class Parameter:
 
         self.aero    = Aerodynamic(self.config['Aerodynamics'])
         self.atmos   = Atmosphere()
-        self.wind    = Wind(self.config['Wind'])
+        self.wind    = Wind(self.config['Wind'], self.config['Launcher']['mag_dec'])
         self.engine  = Engine(self.config['Engine'])
         self.geomet  = Geometry(self.config['Geometry'], self.engine)
         self.launch  = Launcher(self.config['Launcher'])
@@ -121,13 +121,12 @@ class Parameter:
         omega = np.zeros(3)
         
         elev    = np.deg2rad(self.launch.elevation)
-        azim    = np.deg2rad(self.launch.azimuth)
+        azim    = np.deg2rad(self.launch.azimuth + self.launch.mag_dec)
         roll    = 0.
         quat    = quaternion.from_euler_angles(np.array([azim, elev, roll])).normalized()
         dcm     = quaternion.as_rotation_matrix(quat)
         quat    = quaternion.from_rotation_matrix(dcm)
         mass    = self.geomet.mass_bef
-        # pos     = dcm @ np.array([self.geomet.get_Lcg(mass, self.engine.get_lcg_prop(0.)), 0., 0.])
         pos     = dcm @ np.array([self.geomet.get_Lcg(0.), 0., 0.])
 
         return pos, vel, quat, omega, mass

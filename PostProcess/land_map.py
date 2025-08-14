@@ -7,7 +7,7 @@ import numpy as np
 import simplekml
 import pandas as pd
 
-def output_land_map(path, name, launch_LLH, mag_dec, pos_NED, wind_array, azimuth_array, color):
+def output_land_map(path, name, launch_LLH, pos_NED, wind_array, azimuth_array, color):
 
     col = len(pos_NED)
     row = len(pos_NED[0])
@@ -21,11 +21,11 @@ def output_land_map(path, name, launch_LLH, mag_dec, pos_NED, wind_array, azimut
     for i in range(col):
         for j in range(row):
             
-            pos_llh.append(NED2LLH(launch_LLH, pos_NED[i][j], mag_dec))
+            pos_llh.append(NED2LLH(launch_LLH, pos_NED[i][j]))
             speed_list.append(wind_array[i])
             azimuth_list.append(azimuth_array[j])
             
-            pos_llh_kml[i][j] = NED2LLHforKml(launch_LLH, pos_NED[i][j], mag_dec)
+            pos_llh_kml[i][j] = NED2LLHforKml(launch_LLH, pos_NED[i][j])
 
         pos_llh_kml[i][row] = pos_llh_kml[i][0]
 

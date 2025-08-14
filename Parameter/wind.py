@@ -6,13 +6,14 @@ MODEL_ORIGINAL  = 'original'
 
 class Wind:
 
-    def __init__(self, config):
+    def __init__(self, config, mag_dec):
 
         self.speed_ref      = config['speed']
         self.azimuth_ref    = np.deg2rad(config['azimuth'])
         self.exponent       = config['power_coeff']
         self.altitude_ref   = config['altitude']
         self.exist_file     = config['exist_file']
+        self.mag_dec        = - np.abs(np.deg2rad(mag_dec))
 
         if not self.exist_file:
             self.model = MODEL_POWER
@@ -52,7 +53,7 @@ class Wind:
     def get_wind_NED(self, altitude):
         
         speed   = self.get_speed(altitude)
-        azimuth = self.get_azimuth(altitude)
+        azimuth = self.get_azimuth(altitude) + self.mag_dec
 
         return - speed * np.array([np.cos(azimuth), np.sin(azimuth), 0.])
 
