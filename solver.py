@@ -144,12 +144,15 @@ def solve_trajectory(param: Parameter):
     result = solve_ivp(dynamics_trajectory, t_span=(time_sta, param.t_max), y0=x0, args=(param, ), events=event_land, dense_output=True, rtol=1.e-05, t_eval=t_eval)
 
     # 結果のコピー
-    time_log  = result.t
-    pos_log   = result.y[0:3].T
-    vel_log   = result.y[3:6].T
-    quat_log  = result.y[6:10].T
-    omega_log = result.y[10:13].T
-    mass_log  = result.y[13]
+    index = np.argmax(result.y[2] >= 0.)
+    if index == 0:
+        index = len(result.t)
+    time_log  = result.t[:index]
+    pos_log   = result.y[0:3].T[:index]
+    vel_log   = result.y[3:6].T[:index]
+    quat_log  = result.y[6:10].T[:index]
+    omega_log = result.y[10:13].T[:index]
+    mass_log  = result.y[13][:index]
 
     return time_log, pos_log, vel_log, quat_log, omega_log, mass_log
 
@@ -165,57 +168,16 @@ def solve_parachute(param: Parameter, para, time0, pos0):
     t_eval = np.arange(time0, param.t_max, param.dt * 10.)
     t_eval[-1] = np.min([time_end, t_eval[-1]])
     
-    result = solve_ivp(dynamics_parachute, t_span=(time0, param.t_max), t_eval=t_eval, y0=x0, args=(param, para, ), events=event_land_soft, rtol=1.e-06, atol=1.e-04)
+    result = solve_ivp(dynamics_parachute, t_span=(time0, param.t_max), t_eval=t_eval, y0=x0, args=(param, para, ), events=event_land_soft, rtol=1.e-06, atol=1.e-05)
     
     # 結果のコピー
-    time_log_para = result.t
-    pos_log_para  = result.y[0:3].T
+    index = np.argmax(result.y[2] >= 0.)
+    if index == 0:
+        index = len(result.t)
+    time_log_para = result.t[:index]
+    pos_log_para  = result.y[0:3].T[:index]
 
     return time_log_para, pos_log_para
-
-def solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index):
-    '''
-    ペイロードの軌道とペイロード放出後の機体の軌道を再計算する
-    '''
-    from dynamics import dynamics_trajectory, dynamics_parachute, event_land, event_land_soft
-    
-    time0 = time_log[index]
-    event_land_soft.terminal = True
-    t_eval = np.arange(time0, param.t_max, param.dt * 10.)
-    x0 = np.zeros(3)
-    x0[0:3] = pos_log[index]
-
-    # Payload
-    result = solve_ivp(dynamics_parachute, t_span=(time0, param.t_max), t_eval=t_eval, y0=x0, args=(param, param.payload, ), events=event_land_soft, rtol=1.e-06, atol=1.e-04)
-    time_log_payload = result.t
-    pos_log_payload  = result.y[0:3].T
-
-    # Trajectory 
-    # ペイロード分離後の軌道を再計算
-    x0 = np.zeros(14)
-    x0[0:3]     = pos_log[index]
-    x0[3:6]     = vel_log[index]
-    x0[6:10]    = quat_log[index]
-    x0[10:13]   = omega_log[index]
-    x0[13]      = mass_log[index] - param.payload.mass
-
-    event_land.terminal = True
-    time_sta = time_log[index]
-    time_end = param.t_max
-    t_eval = np.arange(time_sta, time_end, param.dt * 5.)
-    t_eval[-1] = np.min([time_end, t_eval[-1]])
-
-    result = solve_ivp(dynamics_trajectory, t_span=(time_sta, param.t_max), y0=x0, args=(param, ), events=event_land, dense_output=True, rtol=1.e-05, t_eval=t_eval)
-
-    time_log_new  = np.append(time_log[:index]  , result.t)
-    pos_log_new   = np.append(pos_log[:index]   , result.y[0:3].T   , axis=0)
-    vel_log_new   = np.append(vel_log[:index]   , result.y[3:6].T   , axis=0)
-    quat_log_new  = np.append(quat_log[:index]  , result.y[6:10].T  , axis=0)
-    omega_log_new = np.append(omega_log[:index] , result.y[10:13].T , axis=0)
-    mass_log_new  = np.append(mass_log[:index]  , result.y[13])
-
-    return time_log_new, pos_log_new, vel_log_new, quat_log_new, omega_log_new, mass_log_new, \
-        time_log_payload, pos_log_payload
 
 def solve_dynamics_for_loop(path, job, result):
     '''
