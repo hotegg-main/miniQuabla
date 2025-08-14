@@ -49,8 +49,6 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     force_gravity       = ([d.T @ (m * np.array([0., 0., g])) for d, m, g in zip(dcm, mass, grav)])
     acc_body            = calc_acceleration(force_aero, force_thrust, force_gravity, np.array([mass, mass, mass]).T, vel, omega)
     lcg                 = param.geomet.get_Lcg(time)
-    # lcg_prop            = param.engine.get_lcg_prop(time)
-    # lcg                 = [param.geomet.get_Lcg(m, l) for m, l in zip(mass, lcg_prop)]
     lcp                 = param.aero.get_Lcp(mach)
     Fst                 = (lcg - lcp) / param.geomet.length * 100.
 
@@ -210,7 +208,59 @@ def calc_sub_values(path, time, pos, vel, quat, omega, mass, time_para, pos_para
     plot_moment(path, time, moment_aero, moment_aero_damp, moment_gyro)
     plot_omega_dot(path, time, omega_dot)                   # 角加速度
     plot_vel_descent(path, time_para, vel_descent)          # 降下速度
+
+def calc_values_min(time, pos, vel, quat, omega, mass, time_para, pos_para, param: Parameter):
+    '''
+    ランチクリア時刻
+    頂点到達時刻
+    着地時刻
+    最大到達高度
+    最大マッハ数
+    ランチクリア速度
+    最大対気速度
+    '''
+    quat_new    = quaternion.from_float_array(quat)
+    dcm         = quaternion.as_rotation_matrix(quat_new)
+
+    altitude            = np.abs(pos[:, 2])
+    _, _, cs       = param.atmos.get_atmosphere(altitude)
+    vel_NED             = np.array([d @ v for d, v in zip(dcm, vel)])
+    wind_NED            = np.array([param.wind.get_wind_NED(alt) for alt in altitude])
+    vel_air             = np.array([d.T @ calc_air_speed(v, w) for d, v, w in zip(dcm, vel_NED, wind_NED)])
+    vel_air_abs         = np.array([np.linalg.norm(v) for v in vel_air])
+    mach                = calc_mach_number(vel_air_abs, cs)
     
+    lcg                 = param.geomet.get_Lcg(time)
+
+    # イベント発生時刻
+    index_launch_clear  = calc_index_launch_clear(pos, dcm, param, lcg)
+    index_apogee        = calc_index_apogee(pos)
+    index_max_air_speed = calc_max_air_speed(vel_air_abs)
+    index_max_mach      = calc_max_mach(mach)
+
+    result = dict()
+
+    # ランチクリア
+    result['time_launch_clear'] = time[index_launch_clear]
+    result['vel_launch_clear']  = vel[index_launch_clear, 0]
+    
+    # 頂点
+    result['time_apogee'] = time[index_apogee]
+    result['alt_apogee']  = altitude[index_apogee]
+    
+    # 着地（弾道）
+    result['time_land_hard'] = time[-1]
+    
+    # 着地（減速）
+    result['time_land_soft'] = time_para[-1]
+
+    # 最大マッハ数
+    result['mach_max'] = mach[index_max_mach]
+
+    # 最大対気速度
+    result['vel_air_max'] = vel_air_abs[index_max_air_speed]
+
+    return result
 
 def plot_main_values(path, param, time, pos, vel, quat, omega, mass, time_para, pos_para, exist_payload, time_payload=None, pos_payload=None):
 

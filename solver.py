@@ -64,7 +64,7 @@ def run_loop(path_config, path_result_src, cond):
     azimuth_step = 360. / row
     azimuth_end  = azimuth_sta + azimuth_step * (row - 1)
 
-    speed_array   = np.linspace(speed_sta, speed_sta + col*speed_step, col+1)
+    speed_array   = np.linspace(speed_sta, speed_sta + (col - 1)*speed_step, col)
     azimuth_array = np.linspace(azimuth_sta, azimuth_end, row)
 
     dummy = Parameter(path_config)
@@ -114,14 +114,17 @@ def run_loop(path_config, path_result_src, cond):
     result_hard = np.zeros((col, row, 3))
     result_soft = np.zeros((col, row, 3))
     result_payload = np.zeros((col, row, 3))
+    results = np.zeros((col, row, 3)).tolist()
     for result in result_list:
-        i = result['Column']    
-        j = result['Row']    
+        i = result['Column']
+        j = result['Row']
         result_hard[i][j] = result['Pos_hard']
         result_soft[i][j] = result['Pos_soft']
+        results[i][j] = result['results']
         if dummy.payload.exist:
             result_payload[i][j] = result['Pos_payload']
 
+    make_summay_for_loop(path_result, result_list, speed_array, azimuth_array)
     output_land_map(path_result, 'trajectory', dummy.launch.LLH, dummy.launch.mag_dec, result_hard, speed_array, azimuth_array, simplekml.Color.orange)
     output_land_map(path_result, 'parachute' , dummy.launch.LLH, dummy.launch.mag_dec, result_soft, speed_array, azimuth_array, simplekml.Color.aqua)
     if dummy.payload.exist:
@@ -240,6 +243,8 @@ def solve_dynamics_for_loop(path, job, result):
     番号、風向、風速
     '''
 
+    from PostProcess.time_history import calc_values_min
+
     param = Parameter(path)
     param.wind.set_power_model(job['Wind Speed'], job['Wind Azimuth'])
 
@@ -248,24 +253,69 @@ def solve_dynamics_for_loop(path, job, result):
     if param.payload.exist:
         # ペイロード放出あり
         
-        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, _, pos_log_para, index \
+        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
             = solve_dynamics(param)
         
-        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, _, pos_log_payload \
+        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_payload \
             = solve_dynamics_payload(param, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, index)
         
         res['Pos_payload'] = pos_log_payload[-1]
 
     else:
 
-        _, pos_log, _, _, _, _, _, pos_log_para, _ \
+        time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, index \
             = solve_dynamics(param)
     
     res['Column']   = job['Column']
     res['Row']      = job['Row']
     res['Pos_hard'] = pos_log[-1]
     res['Pos_soft'] = pos_log_para[-1]
+    res['results']  = calc_values_min(time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param)
     result.append(res)
+
+def make_summay_for_loop(path, result_list, speed, azimuth):
+
+    import pandas as pd
+    import os
+
+    index_list = (speed)
+    header_list = (azimuth)
+
+    col = len(speed)
+    row = len(azimuth)
+
+    time_launch_clear   = np.zeros((col, row))
+    vel_launch_clear    = np.zeros((col, row))
+    time_apogee         = np.zeros((col, row))
+    alt_apogee          = np.zeros((col, row))
+    time_land_hard      = np.zeros((col, row))
+    time_land_soft      = np.zeros((col, row))
+    mach_max            = np.zeros((col, row))
+    vel_air_max         = np.zeros((col, row))
+
+    for result in result_list:
+
+        i = result['Column']
+        j = result['Row']
+        res = result['results']
+
+        time_launch_clear[i, j] = res['time_launch_clear']
+        vel_launch_clear[i, j]  = res['vel_launch_clear']
+        time_apogee[i, j]       = res['time_apogee']
+        alt_apogee[i, j]        = res['alt_apogee']
+        time_land_hard[i, j]    = res['time_land_hard']
+        time_land_soft[i, j]    = res['time_land_soft']
+        mach_max[i, j]          = res['mach_max']
+        vel_air_max[i, j]       = res['vel_air_max']
+
+    pd.DataFrame(time_launch_clear  , index=index_list, columns=header_list).to_csv(path + os.sep + 'time_launch_clear' + '.csv')
+    pd.DataFrame(vel_launch_clear   , index=index_list, columns=header_list).to_csv(path + os.sep + 'vel_launch_clear' + '.csv')
+    pd.DataFrame(time_apogee        , index=index_list, columns=header_list).to_csv(path + os.sep + 'time_apogee' + '.csv')
+    pd.DataFrame(alt_apogee         , index=index_list, columns=header_list).to_csv(path + os.sep + 'alt_apogee' + '.csv')
+    pd.DataFrame(time_land_hard     , index=index_list, columns=header_list).to_csv(path + os.sep + 'time_land_hard' + '.csv')
+    pd.DataFrame(time_land_soft     , index=index_list, columns=header_list).to_csv(path + os.sep + 'time_land_soft' + '.csv')
+    pd.DataFrame(mach_max           , index=index_list, columns=header_list).to_csv(path + os.sep + 'mach_max' + '.csv')
+    pd.DataFrame(vel_air_max        , index=index_list, columns=header_list).to_csv(path + os.sep + 'vel_air_max' + '.csv')
 
 def check_apogee(time_log, pos_log):
 
