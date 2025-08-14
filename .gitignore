@@ -2,4 +2,5 @@
 test/*
 __pycache__
 !/test/dummy
+docs/flowchart.md
 **/__pycache__/**
