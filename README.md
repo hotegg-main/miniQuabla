@@ -2,8 +2,8 @@
 Pythonで記述されたQuablaの簡易版
 
 # Environment
-Python 3.13
 
+Python 3.13</br>
 encoding UTF-8
 
 
@@ -11,9 +11,9 @@ encoding UTF-8
 * 気軽にロケットの飛翔シミュレータを作ってみたい
 * モデルをどこまで簡略化できるかの検証
 
-# Agenda
+<!-- # Agenda
 * プログラム仕様 
-* ファイル入力・出力規則
+* ファイル入力・出力規則 -->
 
 # Usage
 
