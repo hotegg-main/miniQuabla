@@ -26,7 +26,7 @@ class Aerodynamic:
         if exixst_lcp_file:            
             data_lcp    = np.loadtxt(lcp_file, delimiter=',', skiprows=1, usecols=(0, 1))
             mach_array  = data_lcp[:, 0]
-            lcp_array   = data_lcp[:, 1]
+            lcp_array   = data_lcp[:, 1] * 1.E-03
 
         else:
             mach_array      = mach_array_const
