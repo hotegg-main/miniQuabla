@@ -46,11 +46,11 @@ flowchart TD
     start_proc([スタート])
     end_proc([終了])
 
-    prepare_config["諸元ファイルを作成</br>（詳細はRocket Configuration
-へ）"]
+    prepare_config["諸元ファイルを作成</br>（詳細はRocket Configurationへ）"]
+    select_config["simulator.py内でシミュレーションを行う諸元ファイルを指定する"]
     execute_cmd["simulator.pyを実行して、</br>シミュレータを実行</br>（詳細はExecuteへ）"]
 
-    start_proc --> prepare_config --> execute_cmd --> end_proc
+    start_proc --> prepare_config --> select_config --> execute_cmd --> end_proc
     
 ```
 
@@ -60,11 +60,19 @@ flowchart TD
 コピーしたものを数値だけ変更して使用することを推奨する。</br>
 入力が必要な項目、値の定義などは基本的に安全審査の諸元に準している。（2025/08現在）</br>
 諸元ファイルの入力項目、推力ファイルの指定方法に関する詳細は[こちら](docs/input_file.md)を参照のこと。
-<!-- 詳細を追記する -->
+
+# Select Configuration
+
+[`simulator.py`](simulator.py)内で、シミュレーションを行う機体諸元csvファイルを指定する。
+|変数名|説明|
+|--|--|
+|`path_config`|機体諸元csvファイルのパスを指定する。相対パスも指定可能だが、絶対パスでの指定を推奨。|
+|`path_result`|シミュレーション結果の出力先のフォルダのパス|
+|`name_case`|シミレーションを行う条件のケース名。単条件計算時のみ適用される。|
 
 # Execute
 
-コマンドプロンプト(Win OS)やターミナル上(Mac OS)で下記のコマンドで`simulator.py`を実行する。
+コマンドプロンプト(Win OS)やターミナル上(Mac OS)で下記のコマンドで[`simulator.py`](simulator.py)を実行する。
 
 ```
 $ python simulator.py
