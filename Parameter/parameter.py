@@ -68,7 +68,6 @@ class Parameter:
         config_dst['Engine']['lcg_fuel']        = 1.e-03 * float(config_src['lcg_fuel'])
         config_dst['Engine']['l_tank_cap']      = 1.e-03 * float(config_src['l_tank_cap'])
         config_dst['Engine']['thrust_file']     = config_src['thrust_file']
-        # config_dst['Engine']['time_burn']       = float(config_src['time_burn'])
         
         config_dst['Aerodynamics']['lcp']               = 1.e-03 * float(config_src['lcp'])
         config_dst['Aerodynamics']['CA']                = float(config_src['CA'])
@@ -82,7 +81,6 @@ class Parameter:
         config_dst['Aerodynamics']['CA_file']           = str(config_src['CA_file'])
         config_dst['Aerodynamics']['CNa_file']          = str(config_src['CNa_file'])
         
-        # config_dst['Wind']['model']         = config_src['wind_model']
         config_dst['Wind']['speed']         = float(config_src['wind_speed'])
         config_dst['Wind']['azimuth']       = float(config_src['wind_azimuth'])
         config_dst['Wind']['power_coeff']   = float(config_src['wind_power_coeff'])
@@ -112,6 +110,13 @@ class Parameter:
         config_dst['Solver']['name']    = config_src['name']
         config_dst['Solver']['dt']      = float(config_src['dt'])
         config_dst['Solver']['t_max']   = float(config_src['t_max'])
+        config_dst['Solver']['Speed']   = {}
+        config_dst['Solver']['Speed']['min']  = float(config_src['speed_min'])
+        config_dst['Solver']['Speed']['step'] = float(config_src['speed_step'])
+        config_dst['Solver']['Speed']['num']  = int(config_src['speed_num'])
+        config_dst['Solver']['Azimuth'] = {}
+        config_dst['Solver']['Azimuth']['min'] = float(config_src['azimuth_min'])
+        config_dst['Solver']['Azimuth']['num'] = int(config_src['azimuth_num'])
 
         return config_dst
     
@@ -131,6 +136,26 @@ class Parameter:
 
         return pos, vel, quat, omega, mass
     
+    def get_wind_array(self):
+        '''
+        風向・風速条件から落下分散計算用の風ベクトルの配列を作成
+        '''
+
+        col = self.config['Solver']['Speed']['num']   # Speed
+        row = self.config['Solver']['Azimuth']['num'] # Azimuth
+        
+        speed_sta   = self.config['Solver']['Speed']['min']
+        speed_step  = self.config['Solver']['Speed']['step']
+        
+        azimuth_sta  = self.config['Solver']['Azimuth']['min']
+        azimuth_step = 360. / row
+        azimuth_end  = azimuth_sta + azimuth_step * (row - 1)
+
+        speed_array   = np.linspace(speed_sta, speed_sta + (col - 1)*speed_step, col)
+        azimuth_array = np.linspace(azimuth_sta, azimuth_end, row)
+
+        return speed_array, azimuth_array
+
 def __deb_plot(time, lcg, thrust):
 
     import matplotlib.pyplot as plt
@@ -159,9 +184,6 @@ def __debug():
     __deb_plot(time_list, lcg_list, thrust_list)
 
     print('End Debug')
-    # config_src = my.read_config('rocket_config.csv')
-    # config = my.allocate_df(config_src)
-
 
 if __name__=='__main__':
 

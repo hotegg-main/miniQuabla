@@ -12,13 +12,6 @@ if __name__=='__main__':
     path_config = 'example/rocket_config.csv'
     path_result = 'test'
     name_case   = 'nominal'
-    # 落下分散の風向・風速条件は以下で指定する
-    #################################################################
-    cond['Speed']['min']   = 1.     # 最小風速
-    cond['Speed']['step']  = 1.     # 何風速刻みで計算するか
-    cond['Speed']['num']   = 7      # 何風速分計算するか
-    cond['Azimuth']['min'] = 0.     # 風向の最小値[deg]
-    cond['Azimuth']['num'] = 8      # 何風向分計算するか
     #################################################################
 
     print('Hello World!')
@@ -29,5 +22,5 @@ if __name__=='__main__':
     #    run_single() --> 速度、位置などの時間履歴を見る
     #    run_loop()   --> 落下分散図を計算する
     #################################################################
-    run_single(path_config, path_result, name_case)
-    # run_loop(path_config, path_result, cond)
+    # run_single(path_config, path_result, name_case)
+    run_loop(path_config, path_result)

@@ -1,4 +1,4 @@
-from scipy.integrate import solve_ivp, odeint
+from scipy.integrate import solve_ivp
 import numpy as np
 import quaternion
 from Parameter.parameter import Parameter
@@ -15,10 +15,11 @@ def run_single(path_config, path_result_src, name_case):
     elp = []
     elp.append(time.time())
     
+    # 軌道計算の実行（弾道）
     time_log, pos_log, vel_log, quat_log, omega_log, mass_log \
         = solve_trajectory(param)
     
-    # 初期値設定
+    # 減速落下の初期値設定
     index = calc_index_apogee(pos_log)
     time0 = time_log[index]
     pos0  = pos_log[index]
@@ -31,6 +32,7 @@ def run_single(path_config, path_result_src, name_case):
         time_log_payload    = None
         pos_log_payload     = None
 
+    # 軌道計算の実行（減速）
     time_log_para, pos_log_para = solve_parachute(param, param.para, time0, pos0)
     
     elp.append(time.time())
@@ -42,40 +44,31 @@ def run_single(path_config, path_result_src, name_case):
     calc_sub_values(path_result, time_log, pos_log, vel_log, quat_log, omega_log, mass_log, time_log_para, pos_log_para, param)
     elp.append(time.time())
     
+    print('Result Path:', path_result)
     # 経過時間
-    print('Solve ODE :', np.round(elp[1] - elp[0], 3), 'sec')
-    print('Plot      :', np.round(elp[2] - elp[1], 3), 'sec')
-    print('Calc Other:', np.round(elp[3] - elp[2], 3), 'sec')
+    print('Solve ODE  :', np.round(elp[1] - elp[0], 3), 'sec')
+    print('Plot       :', np.round(elp[2] - elp[1], 3), 'sec')
+    print('Calc Other :', np.round(elp[3] - elp[2], 3), 'sec')
 
     print(' ---> Simulation END Successfully!')
 
-def run_loop(path_config, path_result_src, cond):
+def run_loop(path_config, path_result_src):
     '''落下分散計算用の関数'''
     import multiprocessing
     from tqdm import tqdm
 
-    job_list = []
-    manager = multiprocessing.Manager()
-    result_list = manager.list()
-
-    col = cond['Speed']['num']   # Speed
-    row = cond['Azimuth']['num'] # Azimuth
-    
-    speed_sta   = cond['Speed']['min']
-    speed_step  = cond['Speed']['step']
-    
-    azimuth_sta  = cond['Azimuth']['min']
-    azimuth_step = 360. / row
-    azimuth_end  = azimuth_sta + azimuth_step * (row - 1)
-
-    speed_array   = np.linspace(speed_sta, speed_sta + (col - 1)*speed_step, col)
-    azimuth_array = np.linspace(azimuth_sta, azimuth_end, row)
-
     dummy = Parameter(path_config)
+    
+    # 落下分散計算条件の取得
+    speed_array, azimuth_array = dummy.get_wind_array()		# 風向・風速条件の取得
+    col, row = len(speed_array), len(azimuth_array)			# 条件数の取得
     path_result = make_result_directory(path_result_src, dummy.name, 'loop')
     
     elp = []
     elp.append(time.time())
+    
+    # ジョブリストの作成
+    job_list = []
     for i in range(col):
         for j in range(row):
             job = dict()
@@ -85,6 +78,8 @@ def run_loop(path_config, path_result_src, cond):
             job['Wind Azimuth'] = azimuth_array[j]
             job_list.append(job)
 
+    manager = multiprocessing.Manager()
+    result_list = manager.list()
     p_list = []
     for job in tqdm(job_list):
 
@@ -110,9 +105,10 @@ def run_loop(path_config, path_result_src, cond):
     for p in p_list:
         p.join()
     
+    print('Result Path:', path_result)
     # 経過時間
     elp.append(time.time())
-    print('Elapse:', np.round(elp[1] - elp[0], 3), 'sec')
+    print('Elapse     :', np.round(elp[1] - elp[0], 3), 'sec')
 
     # 結果整理
     dummy = Parameter(path_config)
