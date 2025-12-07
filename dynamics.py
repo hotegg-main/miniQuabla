@@ -74,11 +74,11 @@ def dynamics_trajectory(time, x, param:Parameter):
         quat_dot        = np.zeros(4)
 
     dxdt        = np.zeros(14)
-    dxdt[0:3]   = vel_NED
-    dxdt[3:6]   = acc_body
-    dxdt[6:10]  = quat_dot
-    dxdt[10:13] = omega_dot
-    dxdt[13]    = mdot
+    dxdt[0:3]   = vel_NED		# 位置変化
+    dxdt[3:6]   = acc_body		# 速度変化
+    dxdt[6:10]  = quat_dot		# 姿勢変化
+    dxdt[10:13] = omega_dot		# 角速度変化
+    dxdt[13]    = mdot			# 質量変化
 
     return dxdt
 
